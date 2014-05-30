@@ -1227,3 +1227,7 @@ textarea {
   margin-right: 5px;
   margin-bottom: 5px;
 }
+
+.parent_row {
+ font-weight: bold;
+}
