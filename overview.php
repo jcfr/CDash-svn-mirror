@@ -33,23 +33,35 @@ checkUserPolicy(@$_SESSION['cdash']['loginid'], $projectid);
 $db = pdo_connect("$CDASH_DB_HOST", "$CDASH_DB_LOGIN","$CDASH_DB_PASS");
 pdo_select_db("$CDASH_DB_NAME",$db);
 
+// handle optional date argument
+@$date = $_GET["date"];
+list ($previousdate, $currentstarttime, $nextdate) = get_dates($date,$Project->NightlyTime);
+
 // begin .xml that is used to render this page
 $xml = begin_XML_for_XSLT();
 $xml .= get_cdash_dashboard_xml($projectname,$date);
 $projectname = get_project_name($projectid);
 $xml .= "<title>CDash Overview : ".$projectname."</title>";
 
+$xml .= get_cdash_dashboard_xml_by_name($projectname, $date);
+
+$xml .= "<menu>";
+$xml .= add_XML_value("previous", "overview.php?projectid=$projectid&date=$previousdate");
+$xml .= add_XML_value("current", "overview.php?projectid=$projectid");
+$xml .= add_XML_value("next", "overview.phpv?projectid=$projectid&date=$nextdate");
+$xml .= "</menu>";
 
 // function to query database for relevant info
-function generate_overview_xml($start_date, $end_date, $build_name)
+function gather_overview_data($start_date, $end_date, $build_name)
 {
   global $projectid;
-  global $xml;
-  global $num_configure_errors;
-  global $num_configure_warnings;
-  global $num_build_errors;
-  global $num_build_warnings;
-  global $num_failing_tests;
+
+  $num_configure_warnings = 0;
+  $num_configure_errors = 0;
+  $num_build_warnings = 0;
+  $num_build_errors = 0;
+  $num_failing_tests = 0;
+  $return_values = array();
 
   $builds_query = "SELECT b.id, b.builderrors, b.buildwarnings, b.testfailed,
                    c.status AS configurestatus, c.warnings AS configurewarnings
@@ -89,63 +101,75 @@ function generate_overview_xml($start_date, $end_date, $build_name)
       }
     }
 
-  /* JSON instead for d3 perhaps...
-  $xml .= "<date>";
-  $xml .= add_XML_value("configureerrors", $num_configure_errors);
-  $xml .= add_XML_value("configurewarnings", $num_configure_warnings);
-  $xml .= add_XML_value("builderrors", $num_build_errors);
-  $xml .= add_XML_value("buildwarnings", $num_build_warnings);
-  $xml .= add_XML_value("failingtests", $num_failing_tests);
-  $xml .= "</date>";
-  */
+  $return_values["configure warnings"] = $num_configure_warnings;
+  $return_values["configure errors"] = $num_configure_errors;
+  $return_values["build warnings"] = $num_build_warnings;
+  $return_values["build errors"] = $num_build_errors;
+  $return_values["failing tests"] = $num_failing_tests;
+
+  return $return_values;
 }
 
+// hardcoded for now...
+$build_group_names = array("linux", "mac", "windows");
 
-// handle optional date argument
-@$date = $_GET["date"];
-list ($previousdate, $currentstarttime, $nextdate) = get_dates($date,$Project->NightlyTime);
-$beginning_timestamp = $currentstarttime;
-$end_timestamp = $currentstarttime+3600*24;
-$beginning_UTCDate = gmdate(FMT_DATETIME,$beginning_timestamp);
-$end_UTCDate = gmdate(FMT_DATETIME,$end_timestamp);
-
-$build_group_names = array ("linux", "mac", "windows");
-
-// get statistics for each build group 
+// get statistics for each build group
 foreach($build_group_names as $build_group_name)
   {
   $xml .= "<group>";
   $xml .= add_XML_value("name", $build_group_name);
 
-  $num_configure_errors = 0;
-  $num_configure_warnings = 0;
-  $num_build_errors = 0;
-  $num_build_warnings = 0;
-  $num_failing_tests = 0;
-  generate_overview_xml($beginning_UTCDate, $end_UTCDate, $build_group_name);
-  $xml .= add_XML_value("configure_warnings", $num_configure_warnings);
-  $xml .= add_XML_value("configure_errors", $num_configure_errors);
-  $xml .= add_XML_value("build_warnings", $num_build_warnings);
-  $xml .= add_XML_value("build_errors", $num_build_errors);
-  $xml .= add_XML_value("failing_tests", $num_failing_tests);
+  $beginning_timestamp = $currentstarttime;
+  $end_timestamp = $currentstarttime + 3600 * 24;
+  $beginning_UTCDate = gmdate(FMT_DATETIME,$beginning_timestamp);
+  $end_UTCDate = gmdate(FMT_DATETIME,$end_timestamp);
 
-/*
+  $data = gather_overview_data($beginning_UTCDate, $end_UTCDate, $build_group_name);
+  $xml .= add_XML_value("configure_warnings", $data["configure warnings"]);
+  $xml .= add_XML_value("configure_errors", $data["configure errors"]);
+  $xml .= add_XML_value("build_warnings", $data["build warnings"]);
+  $xml .= add_XML_value("build_errors", $data["build errors"]);
+  $xml .= add_XML_value("failing_tests", $data["failing tests"]);
+
   // for charting purposes, we also pull data from the past two weeks
-  for($i = 0; $i < 14; $i++)
-  {
-    $beginning_timestamp -= 3600 * 24;
-    $end_timestamp -= 3600 * 24;
-    $beginning_UTCDate = gmdate(FMT_DATETIME,$beginning_timestamp);
-    $end_UTCDate = gmdate(FMT_DATETIME,$end_timestamp);
-  }
-*/
+  $chart_configure_warnings = array();
+  $chart_configure_errors = array();
+  $chart_build_warnings = array();
+  $chart_build_errors = array();
+  $chart_failing_tests = array();
+  for($i = -13; $i < 1; $i++)
+    {
+    $chart_beginning_timestamp = $beginning_timestamp + ($i * 3600 * 24);
+    $chart_end_timestamp = $end_timestamp + ($i * 3600 * 24);
+    $chart_beginning_UTCDate = gmdate(FMT_DATETIME, $chart_beginning_timestamp);
+    $chart_end_UTCDate = gmdate(FMT_DATETIME, $chart_end_timestamp);
+    $data = gather_overview_data($chart_beginning_UTCDate, $chart_end_UTCDate, $build_group_name);
+
+    $chart_configure_warnings[] = array('x' => $i,
+                                        'y' => $data["configure warnings"]);
+    $chart_configure_errors[] = array('x' => $i,
+                                      'y' => $data["configure errors"]);
+    $chart_build_warnings[] = array('x' => $i, 'y' => $data["build warnings"]);
+    $chart_build_errors[] = array('x' => $i, 'y' => $data["build errors"]);
+    $chart_failing_tests[] = array('x' => $i, 'y' => $data["failing tests"]);
+    }
+
+  // JSON encode chart data to make it easier to use on the other end
+  $xml .= add_XML_value("chart_configure_warnings",
+                        json_encode($chart_configure_warnings));
+  $xml .= add_XML_value("chart_configure_errors",
+                        json_encode($chart_configure_errors));
+  $xml .= add_XML_value("chart_build_warnings",
+                        json_encode($chart_build_warnings));
+  $xml .= add_XML_value("chart_build_errors",
+                        json_encode($chart_build_errors));
+  $xml .= add_XML_value("chart_failing_tests",
+                        json_encode($chart_failing_tests));
 
   $xml .= "</group>";
   }
 
 $xml .= "</cdash>";
-
-file_put_contents("/tmp/zackdebug.xml", $xml);
 
 // Now doing the xslt transition
 if(!isset($NoXSLGenerate))
