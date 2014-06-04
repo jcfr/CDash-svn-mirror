@@ -262,7 +262,10 @@ foreach($coverage_group_names as $coverage_group_name)
       count($linechart_data[$key_name]);
     }
 
-  // isolate the previous coverage value
+  // isolate the previous coverage value.  This is typically the
+  // second to last coverage data point that we collected, but
+  // we're careful to check for the case where only a single point
+  // was recovered.
   $num_points = count($linechart_data[$key_name]);
   if ($num_points > 1)
     {
@@ -293,7 +296,7 @@ foreach($measurements as $measurement)
     $xml .= "<group>";
     $xml .= add_XML_value("group_name", $build_group_name);
     $xml .= add_XML_value("value", $overview_data[$measurement][$build_group_name]);
-    // JSON encode linechart data to make it easier to use on the other end
+    // JSON encode linechart data to make it easier to use on the client side
     $xml .= add_XML_value("chart", json_encode($linechart_data[$measurement][$build_group_name]));
     $xml .= "</group>";
     }
