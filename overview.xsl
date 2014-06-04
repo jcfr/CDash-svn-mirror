@@ -40,29 +40,24 @@
               var <xsl:value-of select="group_name"/>_<xsl:value-of select="$measurement_name"/> =
                 <xsl:value-of select="chart"/>;
               make_line_chart("<xsl:value-of select="group_name"/>" + " " + "<xsl:value-of select="$measurement_nice_name"/>",
+                              "#<xsl:value-of select="group_name"/>_<xsl:value-of select="$measurement_name"/>_chart svg",
                               <xsl:value-of select="group_name"/>_<xsl:value-of select="$measurement_name"/>);
             </xsl:for-each>
           </xsl:for-each>
-          <xsl:if test="/cdash/coverage">
-            var core_coverage_chart = <xsl:value-of select="/cdash/coverage/chart"/>;
-            make_line_chart("core coverage", core_coverage_chart);
-            make_bullet_chart("core coverage",
-              <xsl:value-of select="/cdash/coverage/min"/>,
-              <xsl:value-of select="/cdash/coverage/avg"/>,
-              <xsl:value-of select="/cdash/coverage/max"/>,
-              <xsl:value-of select="/cdash/coverage/value"/>,
-              <xsl:value-of select="/cdash/coverage/previous"/>);
-          </xsl:if>
-          <xsl:if test="/cdash/non_core_coverage">
-            var non_core_coverage_chart = <xsl:value-of select="/cdash/non_core_coverage/chart"/>;
-            make_line_chart("non core coverage", non_core_coverage_chart);
-            make_bullet_chart("non core coverage",
-              <xsl:value-of select="/cdash/non_core_coverage/min"/>,
-              <xsl:value-of select="/cdash/non_core_coverage/avg"/>,
-              <xsl:value-of select="/cdash/non_core_coverage/max"/>,
-              <xsl:value-of select="/cdash/non_core_coverage/value"/>,
-              <xsl:value-of select="/cdash/non_core_coverage/previous"/>);
-          </xsl:if>
+
+          <xsl:for-each select='/cdash/coverage'>
+            var <xsl:value-of select="name"/> = <xsl:value-of select="chart"/>;
+            make_line_chart("<xsl:value-of select="nice_name"/> coverage",
+                            "#<xsl:value-of select="name"/>_coverage_chart svg",
+                            <xsl:value-of select="name"/>);
+            make_bullet_chart("<xsl:value-of select="nice_name"/> coverage",
+              "#<xsl:value-of select="name"/>_coverage_bullet svg",
+              <xsl:value-of select="min"/>,
+              <xsl:value-of select="average"/>,
+              <xsl:value-of select="max"/>,
+              <xsl:value-of select="current"/>,
+              <xsl:value-of select="previous"/>);
+          </xsl:for-each>
         </script>
       </head>
 
@@ -104,37 +99,20 @@
             </tr>
           </xsl:for-each>
 
-          <xsl:if test="/cdash/coverage">
+          <xsl:for-each select='/cdash/coverage'>
             <tr class="row">
-              <td class="col-md-7" colspan="7"></td>
-            </tr>
-            <tr class="row">
-              <td class="col-md-1"><b>Coverage</b></td>
+              <td class="col-md-1"><b><xsl:value-of select="nice_name"/> coverage</b></td>
               <td class="col-md-1">
-                <xsl:value-of select="/cdash/coverage/value"/>%
+                <xsl:value-of select="current"/>%
               </td>
-              <td id="core_coverage_chart" class="col-md-1">
+              <td id="{name}_coverage_chart" class="col-md-1">
                 <svg width="100%" height="100%"></svg>
               </td>
-              <td id="core_coverage_bullet" class="col-md-4" colspan="4">
+              <td id="{name}_coverage_bullet" class="col-md-4" colspan="4">
                 <svg></svg>
               </td>
             </tr>
-              <xsl:if test="/cdash/non_core_coverage">
-                <tr class="row">
-                  <td class="col-md-1"><b>Non-core coverage</b></td>
-                  <td class="col-md-1">
-                    <xsl:value-of select="/cdash/non_core_coverage/value"/>%
-                  </td>
-                  <td id="non_core_coverage_chart" class="col-md-1">
-                    <svg width="100%" height="100%"></svg>
-                  </td>
-                  <td id="non_core_coverage_bullet" class="col-md-4" colspan="4">
-                    <svg width="100%" height="100%"></svg>
-                  </td>
-                </tr>
-              </xsl:if>
-          </xsl:if>
+          </xsl:for-each>
         </table>
 
         <!-- FOOTER -->

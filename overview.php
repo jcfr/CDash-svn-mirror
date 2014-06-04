@@ -164,28 +164,27 @@ $overview_data = array();
 foreach($measurements as $measurement)
   {
   $overview_data[$measurement] = array();
-  $chart_data[$measurement] = array();
+  $linechart_data[$measurement] = array();
   foreach($build_group_names as $build_group_name)
     {
-    $chart_data[$measurement][$build_group_name] = array();
+    $linechart_data[$measurement][$build_group_name] = array();
     }
   }
 
-// single values to display a percentage
-$core_coverage = -1;
-$non_core_coverage = -1;
-// multiple values to display as a chart
-$core_coverage_data = array();
-$non_core_coverage_data = array();
-// data for bullet charts
-$core_coverage_min = 101;
-$core_coverage_max = -1;
-$core_coverage_avg = 0;
-$core_coverage_prev = -1;
-$non_core_coverage_min = 101;
-$non_core_coverage_max = -1;
-$non_core_coverage_avg = 0;
-$non_core_coverage_prev = -1;
+$coverage_data = array();
+// also hardcoded for now
+$coverage_group_names = array("core", "non_core");
+foreach($coverage_group_names as $coverage_group_name)
+  {
+  $coverage_data[$coverage_group_name] = array();
+  $linechart_data[$coverage_group_name . "_coverage"] = array();
+
+  $coverage_data[$coverage_group_name]["min"] = 101;
+  $coverage_data[$coverage_group_name]["max"] = -1;
+  $coverage_data[$coverage_group_name]["average"] = 0;
+  $coverage_data[$coverage_group_name]["previous"] = 0;
+  $coverage_data[$coverage_group_name]["current"] = 0;
+  }
 
 // gather up the relevant stats
 foreach($build_group_names as $build_group_name)
@@ -197,20 +196,21 @@ foreach($build_group_names as $build_group_name)
 
   $data = gather_overview_data($beginning_UTCDate, $end_UTCDate, $build_group_name);
 
-  // for now, we assume that coverage will only be performed by one
-  // of these build groups...
-  if (array_key_exists("core_coverage", $data))
-    {
-    $core_coverage = $data["core_coverage"];
-    }
-  if (array_key_exists("non_core_coverage", $data))
-    {
-    $non_core_coverage = $data["non_core_coverage"];
-    }
-
   foreach($measurements as $measurement)
     {
     $overview_data[$measurement][$build_group_name] = $data[$measurement];
+    }
+
+  // here we assume that coverage will only be performed by one
+  // of the build groups, otherwise this data will be overwritten each
+  // time through this (outer) foreach loop.
+  foreach($coverage_group_names as $coverage_group_name)
+    {
+    $key_name = $coverage_group_name . "_coverage";
+    if (array_key_exists($key_name, $data))
+      {
+      $coverage_data[$coverage_group_name]["current"] = $data[$key_name];
+      }
     }
 
   // for charting purposes, we also pull data from the past two weeks
@@ -223,62 +223,57 @@ foreach($build_group_names as $build_group_name)
     $data = gather_overview_data($chart_beginning_UTCDate, $chart_end_UTCDate, $build_group_name);
     foreach($measurements as $measurement)
       {
-      $chart_data[$measurement][$build_group_name][] = array('x' => $i, 'y' => $data[$measurement]);
+      $linechart_data[$measurement][$build_group_name][] = array('x' => $i, 'y' => $data[$measurement]);
       }
+
     // coverage too
-    if (array_key_exists("core_coverage", $data))
+    foreach($coverage_group_names as $coverage_group_name)
       {
-      $core_coverage_data[] = array('x' => $i, 'y' => $data["core_coverage"]);
-      if ($data["core_coverage"] < $core_coverage_min)
+      $key_name = $coverage_group_name . "_coverage";
+      if (array_key_exists($key_name, $data))
         {
-        $core_coverage_min = $data["core_coverage"];
+        $coverage_value = $data[$key_name];
+
+        $linechart_data[$key_name][] = array('x' => $i, 'y' => $coverage_value);
+
+        if ($coverage_value < $coverage_data[$coverage_group_name]["min"])
+          {
+          $coverage_data[$coverage_group_name]["min"] = $coverage_value;
+          }
+        if ($coverage_value > $coverage_data[$coverage_group_name]["max"])
+          {
+          $coverage_data[$coverage_group_name]["max"] = $coverage_value;
+          }
+        $coverage_data[$coverage_group_name]["average"] += $coverage_value;
         }
-      if ($data["core_coverage"] > $core_coverage_max)
-        {
-        $core_coverage_max = $data["core_coverage"];
-        }
-      $core_coverage_avg += $data["core_coverage"];
-      $core_coverage_prev = $data["core_coverage"];
-      }
-    if (array_key_exists("non_core_coverage", $data))
-      {
-      $non_core_coverage_data[] = array('x' => $i, 'y' => $data["non_core_coverage"]);
-      if ($data["non_core_coverage"] < $non_core_coverage_min)
-        {
-        $non_core_coverage_min = $data["non_core_coverage"];
-        }
-      if ($data["non_core_coverage"] > $non_core_coverage_max)
-        {
-        $non_core_coverage_max = $data["non_core_coverage"];
-        }
-      $non_core_coverage_avg += $data["non_core_coverage"];
       }
     }
   }
 
-if ($core_coverage_avg != 0)
+// compute average & previous coverage values
+foreach($coverage_group_names as $coverage_group_name)
   {
-  $core_coverage_avg /= count($core_coverage_data);
-  }
-if ($non_core_coverage_avg != 0)
-  {
-  $non_core_coverage_avg /= count($non_core_coverage_data);
-  }
-if (count($core_coverage_data) > 1)
-  {
-  $core_coverage_prev = $core_coverage_data[count($core_coverage_data) - 2]['y'];
-  }
-else
-  {
-  $core_coverage_prev = end($core_coverage_data)['y'];
-  }
-if (count($non_core_coverage_data) > 1)
-  {
-  $non_core_coverage_prev = $non_core_coverage_data[count($non_core_coverage_data) - 2]['y'];
-  }
-else
-  {
-  $non_core_coverage_prev = end($non_core_coverage_data)['y'];
+  $key_name = $coverage_group_name . "_coverage";
+
+  // divide our running average by the number of data points we encountered
+  if ($coverage_data[$coverage_group_name]["average"] != 0)
+    {
+    $coverage_data[$coverage_group_name]["average"] /=
+      count($linechart_data[$key_name]);
+    }
+
+  // isolate the previous coverage value
+  $num_points = count($linechart_data[$key_name]);
+  if ($num_points > 1)
+    {
+    $coverage_data[$coverage_group_name]["previous"] =
+      $linechart_data[$key_name][$num_points - 2]['y'];
+    }
+  else
+    {
+    $coverage_data[$coverage_group_name]["previous"] =
+      end($linechart_data[$key_name])['y'];
+    }
   }
 
 // now that the data has been collected, we can generate the .xml data
@@ -298,34 +293,29 @@ foreach($measurements as $measurement)
     $xml .= "<group>";
     $xml .= add_XML_value("group_name", $build_group_name);
     $xml .= add_XML_value("value", $overview_data[$measurement][$build_group_name]);
-    // JSON encode chart data to make it easier to use on the other end
-    $xml .= add_XML_value("chart", json_encode($chart_data[$measurement][$build_group_name]));
+    // JSON encode linechart data to make it easier to use on the other end
+    $xml .= add_XML_value("chart", json_encode($linechart_data[$measurement][$build_group_name]));
     $xml .= "</group>";
     }
   $xml .= "</measurement>";
   }
 
-if ($core_coverage != -1)
+foreach($coverage_group_names as $coverage_group_name)
   {
   $xml .= "<coverage>";
-  $xml .= add_XML_value("value", "$core_coverage");
-  $xml .= add_XML_value("previous", "$core_coverage_prev");
-  $xml .= add_XML_value("min", "$core_coverage_min");
-  $xml .= add_XML_value("avg", "$core_coverage_avg");
-  $xml .= add_XML_value("max", "$core_coverage_max");
-  $xml .= add_XML_value("chart", json_encode($core_coverage_data));
+  $xml .= add_XML_value("name", "$coverage_group_name");
+  $xml .= add_XML_value("nice_name", str_replace("_", " ", $coverage_group_name));
+  $xml .= add_XML_value("min", $coverage_data[$coverage_group_name]["min"]);
+  $xml .= add_XML_value("max", $coverage_data[$coverage_group_name]["max"]);
+  $xml .= add_XML_value("average",
+    $coverage_data[$coverage_group_name]["average"]);
+  $xml .= add_XML_value("current",
+    $coverage_data[$coverage_group_name]["current"]);
+  $xml .= add_XML_value("previous",
+    $coverage_data[$coverage_group_name]["previous"]);
+  $xml .= add_XML_value("chart",
+    json_encode($linechart_data[$coverage_group_name . "_coverage"]));
   $xml .= "</coverage>";
-  }
-if ($non_core_coverage != -1)
-  {
-  $xml .= "<non_core_coverage>";
-  $xml .= add_XML_value("value", "$non_core_coverage");
-  $xml .= add_XML_value("previous", "$non_core_coverage_prev");
-  $xml .= add_XML_value("min", "$non_core_coverage_min");
-  $xml .= add_XML_value("avg", "$non_core_coverage_avg");
-  $xml .= add_XML_value("max", "$non_core_coverage_max");
-  $xml .= add_XML_value("chart", json_encode($non_core_coverage_data));
-  $xml .= "</non_core_coverage>";
   }
 
 $xml .= "</cdash>";

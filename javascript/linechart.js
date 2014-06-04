@@ -1,6 +1,5 @@
-function make_line_chart(chart_name, input_data) {
+function make_line_chart(chart_name, element_name, input_data) {
   var chart;
-  chart_name = chart_name.replace(/_/g, ' ');
 
   nv.addGraph(function() {
     chart = nv.models.lineChart()
@@ -17,7 +16,6 @@ function make_line_chart(chart_name, input_data) {
       color: "#ff7f0e",
       area: false
     }];
-    var element_name = "#" + chart_name.replace(/ /g, '_') + "_chart svg";
     d3.select(element_name)
       .datum(chart_data)
       .call(chart);
