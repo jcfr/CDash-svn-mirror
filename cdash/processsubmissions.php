@@ -2,10 +2,10 @@
 /*=========================================================================
 
   Program:   CDash - Cross-Platform Dashboard System
-  Module:    $Id: processsubmissions.php 3448 2014-04-05 10:43:04Z david.cole $
+  Module:    $Id: processsubmissions.php 3516 2014-06-04 12:38:29Z zack.galbreath $
   Language:  PHP
-  Date:      $Date: 2014-04-05 10:43:04 +0000 (Sat, 05 Apr 2014) $
-  Version:   $Revision: 3448 $
+  Date:      $Date: 2014-06-04 12:38:29 +0000 (Wed, 04 Jun 2014) $
+  Version:   $Revision: 3516 $
 
   Copyright (c) 2002 Kitware, Inc.  All rights reserved.
   See Copyright.txt or http://www.cmake.org/HTML/Copyright.html for details.
@@ -418,8 +418,9 @@ function DeleteOldSubmissionRecords($projectid)
     }
 
   $idset = "(";
-  foreach($ids as $id)
+  foreach($ids as $id_row)
     {
+    $id = $id_row["id"];
     $idset .= "'$id', ";
     }
   // Avoid conditional ", " emission in the loop. OK to repeat an
