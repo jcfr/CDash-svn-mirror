@@ -28,31 +28,40 @@
           <script src="javascript/d3.min.js" type="text/javascript" charset="utf-8"></script>
           <script src="javascript/nv.d3.min.js" type="text/javascript" charset="utf-8"></script>
           <script src="javascript/linechart.js" type="text/javascript" charset="utf-8"></script>
+          <script src="javascript/bulletchart.js" type="text/javascript" charset="utf-8"></script>
 
           <!-- Generate line charts -->
           <script type="text/javascript">
-            <xsl:for-each select='/cdash/group'>
-              var <xsl:value-of select="name"/>_configure_warnings =
-                <xsl:value-of select="chart_configure_warnings"/>;
-              make_line_chart("<xsl:value-of select="name"/> configure warnings",
-                              <xsl:value-of select="name"/>_configure_warnings);
-              var <xsl:value-of select="name"/>_configure_errors =
-                <xsl:value-of select="chart_configure_errors"/>;
-              make_line_chart("<xsl:value-of select="name"/> configure errors",
-                              <xsl:value-of select="name"/>_configure_errors);
-              var <xsl:value-of select="name"/>_build_warnings =
-                <xsl:value-of select="chart_build_warnings"/>;
-              make_line_chart("<xsl:value-of select="name"/> build warnings",
-                              <xsl:value-of select="name"/>_build_warnings);
-              var <xsl:value-of select="name"/>_build_errors =
-                <xsl:value-of select="chart_build_errors"/>;
-              make_line_chart("<xsl:value-of select="name"/> build errors",
-                              <xsl:value-of select="name"/>_build_errors);
-              var <xsl:value-of select="name"/>_failing_tests =
-                <xsl:value-of select="chart_failing_tests"/>;
-              make_line_chart("<xsl:value-of select="name"/> failing tests",
-                              <xsl:value-of select="name"/>_failing_tests);
+            <xsl:for-each select='/cdash/measurement'>
+              <xsl:variable name="measurement_name" select="name"/>
+              <xsl:variable name="measurement_nice_name" select="nice_name"/>
+              <xsl:for-each select='group'>
+                var <xsl:value-of select="group_name"/>_<xsl:value-of select="$measurement_name"/> =
+                  <xsl:value-of select="chart"/>;
+                make_line_chart("<xsl:value-of select="group_name"/>" + " " + "<xsl:value-of select="$measurement_nice_name"/>",
+                                <xsl:value-of select="group_name"/>_<xsl:value-of select="$measurement_name"/>);
+              </xsl:for-each>
             </xsl:for-each>
+            <xsl:if test="/cdash/coverage">
+              var core_coverage_chart = <xsl:value-of select="/cdash/coverage/chart"/>;
+              make_line_chart("core coverage", core_coverage_chart);
+              make_bullet_chart("core coverage",
+                <xsl:value-of select="/cdash/coverage/min"/>,
+                <xsl:value-of select="/cdash/coverage/avg"/>,
+                <xsl:value-of select="/cdash/coverage/max"/>,
+                <xsl:value-of select="/cdash/coverage/value"/>,
+                <xsl:value-of select="/cdash/coverage/previous"/>);
+            </xsl:if>
+            <xsl:if test="/cdash/non_core_coverage">
+              var non_core_coverage_chart = <xsl:value-of select="/cdash/non_core_coverage/chart"/>;
+              make_line_chart("non core coverage", non_core_coverage_chart);
+              make_bullet_chart("non core coverage",
+                <xsl:value-of select="/cdash/non_core_coverage/min"/>,
+                <xsl:value-of select="/cdash/non_core_coverage/avg"/>,
+                <xsl:value-of select="/cdash/non_core_coverage/max"/>,
+                <xsl:value-of select="/cdash/non_core_coverage/value"/>,
+                <xsl:value-of select="/cdash/non_core_coverage/previous"/>);
+            </xsl:if>
           </script>
         </head>
 
@@ -67,54 +76,64 @@
         </xsl:otherwise>
         </xsl:choose>
 
-
-<table class="table-bordered table-responsive table-condensed">
+<table class="table-bordered table-responsive table-condensed container-fluid">
   <tr class="row">
-    <th class="col-md-2">Build Group</th>
-    <th class="col-md-2" colspan="2">Configure Warnings</th>
-    <th class="col-md-2" colspan="2">Configure Errors</th>
-    <th class="col-md-2" colspan="2">Build Warnings</th>
-    <th class="col-md-2" colspan="2">Build Errors</th>
-    <th class="col-md-2" colspan="2">Failing Tests</th>
+      <th class="col-md-1"> </th>
+        <xsl:for-each select='/cdash/group'>
+          <th class="col-md-2" colspan="2">
+            <xsl:value-of select="name"/>
+          </th>
+        </xsl:for-each>
   </tr>
 
-  <xsl:for-each select='/cdash/group'>
+  <xsl:for-each select='/cdash/measurement'>
+    <xsl:variable name="measurement_name" select="name"/>
     <tr class="row">
-      <td class="col-md-2">
-        <xsl:value-of select="name"/>
+      <td class="col-md-1">
+        <b><xsl:value-of select="nice_name"/></b>
       </td>
-      <td class="col-md-1" id="{name}_configure_warnings">
-        <xsl:value-of select="configure_warnings"/>
-      </td>
-      <td class="col-md-1" id="{name}_configure_warnings_chart">
-        <svg width="100%" height="100%"></svg>
-      </td>
-      <td class="col-md-1" id="{name}_configure_errors">
-        <xsl:value-of select="configure_errors"/>
-      </td>
-      <td class="col-md-1" id="{name}_configure_errors_chart">
-        <svg width="100%" height="100%"></svg>
-      </td>
-      <td class="col-md-1" id="{name}_build_warnings">
-        <xsl:value-of select="build_warnings"/>
-      </td>
-      <td class="col-md-1" id="{name}_build_warnings_chart">
-        <svg width="100%" height="100%"></svg>
-      </td>
-      <td class="col-md-1" id="{name}_build_errors">
-        <xsl:value-of select="build_errors"/>
-      </td>
-      <td class="col-md-1" id="{name}_build_errors_chart">
-        <svg width="100%" height="100%"></svg>
-      </td>
-      <td class="col-md-1" id="{name}_failing_tests">
-        <xsl:value-of select="failing_tests"/>
-      </td>
-      <td class="col-md-1" id="{name}_failing_tests_chart">
-        <svg width="100%" height="100%"></svg>
-      </td>
+      <xsl:for-each select='group'>
+        <td class="col-md-1">
+          <xsl:value-of select="value"/>
+        </td>
+        <td class="col-md-1" id="{group_name}_{$measurement_name}_chart">
+          <svg width="100%" height="100%"></svg>
+        </td>
+      </xsl:for-each>
     </tr>
   </xsl:for-each>
+
+<xsl:if test="/cdash/coverage">
+  <tr class="row">
+    <td class="col-md-7" colspan="7"></td>
+  </tr>
+  <tr class="row">
+    <td class="col-md-1"><b>Coverage</b></td>
+    <td class="col-md-1">
+      <xsl:value-of select="/cdash/coverage/value"/>%
+    </td>
+    <td id="core_coverage_chart" class="col-md-1">
+      <svg width="100%" height="100%"></svg>
+    </td>
+    <td id="core_coverage_bullet" class="col-md-4" colspan="4">
+      <svg></svg>
+    </td>
+  </tr>
+    <xsl:if test="/cdash/non_core_coverage">
+      <tr class="row">
+        <td class="col-md-1"><b>Non-core coverage</b></td>
+        <td class="col-md-1">
+          <xsl:value-of select="/cdash/non_core_coverage/value"/>%
+        </td>
+        <td id="non_core_coverage_chart" class="col-md-1">
+          <svg width="100%" height="100%"></svg>
+        </td>
+        <td id="non_core_coverage_bullet" class="col-md-4" colspan="4">
+          <svg width="100%" height="100%"></svg>
+        </td>
+      </tr>
+    </xsl:if>
+</xsl:if>
 </table>
 
 <!-- FOOTER -->

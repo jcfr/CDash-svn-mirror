@@ -1,5 +1,6 @@
 function make_line_chart(chart_name, input_data) {
   var chart;
+  chart_name = chart_name.replace(/_/g, ' ');
 
   nv.addGraph(function() {
     chart = nv.models.lineChart()
