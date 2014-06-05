@@ -56,7 +56,8 @@
               <xsl:value-of select="average"/>,
               <xsl:value-of select="max"/>,
               <xsl:value-of select="current"/>,
-              <xsl:value-of select="previous"/>);
+              <xsl:value-of select="previous"/>,
+              25);
           </xsl:for-each>
         </script>
       </head>
@@ -92,8 +93,8 @@
                 <td class="col-md-1">
                   <xsl:value-of select="value"/>
                 </td>
-                <td class="col-md-1" id="{group_name}_{$measurement_name}_chart">
-                  <svg width="100%" height="100%"></svg>
+                <td class="col-md-1" id="{group_name}_{$measurement_name}_chart" style="height:25px;">
+                  <svg></svg>
                 </td>
               </xsl:for-each>
             </tr>
@@ -105,10 +106,10 @@
               <td class="col-md-1">
                 <xsl:value-of select="current"/>%
               </td>
-              <td id="{name}_coverage_chart" class="col-md-1">
-                <svg width="100%" height="100%"></svg>
+              <td id="{name}_coverage_chart" class="col-md-1" style="height:25px;">
+                <svg></svg>
               </td>
-              <td id="{name}_coverage_bullet" class="col-md-4" colspan="4">
+              <td id="{name}_coverage_bullet" class="col-md-4" colspan="4" style="height:50px; width:100%;">
                 <svg></svg>
               </td>
             </tr>
