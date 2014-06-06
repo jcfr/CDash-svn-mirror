@@ -104,6 +104,8 @@ project page</a>
             <a href="#fragment-3"><span>Global Move</span></a></li>
           <li>
             <a href="#fragment-4"><span>Auto-Remove Settings</span></a></li>
+          <li>
+            <a href="#fragment-5"><span>Define Group by Build Name</span></a></li>
       </ul>
     <div id="fragment-1" class="tab_content" >
         <div class="tab_help_top"></div>
@@ -302,6 +304,28 @@ project page</a>
         </table>
         <input type="submit" name="submitAutoRemoveSettings" value="Update Settings"/>
         </form>
+    </div>
+    <div id="fragment-5" class="tab_content" >
+      <form name="definegroupbybuildname" method="post">
+        <xsl:attribute name="action">manageBuildGroup.php?projectid=<xsl:value-of select="cdash/project/id"/></xsl:attribute>
+        The build names of <select name="groupBuildNameSelection">
+          <option>
+            <xsl:attribute name="value">0</xsl:attribute>
+            Choose...
+          </option>
+
+          <xsl:for-each select="cdash/project/group">
+            <option>
+              <xsl:attribute name="value"><xsl:value-of select="id"/></xsl:attribute>
+              <xsl:value-of select="name"/>
+            </option>
+          </xsl:for-each>
+        </select>
+        should contain <input name="name" type="text" id="buildNameMatch" size="20"/>
+        <br/>
+        <input type="submit" name="defineByBuildName" value="Define Group"/>
+        <br/>
+      </form>
     </div>
  </div>
 
