@@ -313,7 +313,6 @@ project page</a>
             <xsl:attribute name="value">0</xsl:attribute>
             Choose...
           </option>
-
           <xsl:for-each select="cdash/project/group">
             <option>
               <xsl:attribute name="value"><xsl:value-of select="id"/></xsl:attribute>
@@ -321,9 +320,32 @@ project page</a>
             </option>
           </xsl:for-each>
         </select>
-        should contain <input name="name" type="text" id="buildNameMatch" size="20"/>
+        match <input name="buildNameMatch" type="text" id="buildNameMatch" size="20"/>
+        and their type is <select name="buildType">
+          <option>Nightly</option>
+          <option>Continuous</option>
+          <option>Experimental</option>
+        </select>
         <br/>
         <input type="submit" name="defineByBuildName" value="Define Group"/>
+        <br/>
+      </form>
+      <br/><br/>
+      <form name="deleterules" method="post">
+        <xsl:attribute name="action">manageBuildGroup.php?projectid=<xsl:value-of select="cdash/project/id"/></xsl:attribute>
+        Delete build group rules for <select name="deleteRulesForGroup">
+          <option>
+            <xsl:attribute name="value">0</xsl:attribute>
+            Choose...
+          </option>
+          <xsl:for-each select="cdash/project/group">
+            <option>
+              <xsl:attribute name="value"><xsl:value-of select="id"/></xsl:attribute>
+              <xsl:value-of select="name"/>
+            </option>
+          </xsl:for-each>
+        </select>
+        <input type="submit" name="deleteBuildGroupRules" value="Delete Rules"/>
         <br/>
       </form>
     </div>

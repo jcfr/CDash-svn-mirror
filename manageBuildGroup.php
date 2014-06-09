@@ -370,6 +370,39 @@ if(isset($_POST["groupid"]))
     }
 }
 
+// define a group by build name
+@$DefineByBuildName = $_POST["defineByBuildName"];
+if($DefineByBuildName)
+  {
+  $Groupid = pdo_real_escape_numeric($_POST["groupBuildNameSelection"]);
+  if ($Groupid > 0)
+    {
+    $BuildNameMatch = "%" . htmlspecialchars(pdo_real_escape_string($_POST["buildNameMatch"])) . "%";
+    $BuildType = htmlspecialchars(pdo_real_escape_string($_POST["buildType"]));
+    $sql = "INSERT INTO build2grouprule (groupid, buildtype, buildname, siteid)
+            VALUES ('$Groupid', '$BuildType', '$BuildNameMatch', '-1')";
+    if(!pdo_query("$sql"))
+      {
+      echo pdo_error();
+      }
+    }
+  } // end define by build name
+
+// delete the rules for a build group
+@$DeleteBuildGroupRules = $_POST["deleteBuildGroupRules"];
+if($DeleteBuildGroupRules)
+  {
+  $Groupid = pdo_real_escape_numeric($_POST["deleteRulesForGroup"]);
+  if ($Groupid > 0)
+    {
+    $sql = "DELETE FROM build2grouprule WHERE groupid = '$Groupid'";
+    if(!pdo_query("$sql"))
+      {
+      echo pdo_error();
+      }
+    }
+  } // end delete build group rules
+
 /** We start generating the XML here */
 
 // Find the recent builds for this project
