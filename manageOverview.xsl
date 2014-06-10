@@ -1,113 +1,185 @@
-<xsl:stylesheet
-    xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version='1.0'>
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version='1.0'>
 
-   <xsl:include href="footer.xsl"/>
-   <xsl:include href="headscripts.xsl"/>
-   <xsl:include href="headeradminproject.xsl"/>
+  <xsl:include href="footer.xsl"/>
+  <xsl:include href="headscripts.xsl"/>
+  <xsl:include href="headeradminproject.xsl"/>
 
-    <!-- Local includes -->
-   <xsl:include href="local/footer.xsl"/>
-   <xsl:include href="local/headscripts.xsl"/>
-   <xsl:include href="local/headeradminproject.xsl"/>
+  <!-- Local includes -->
+  <xsl:include href="local/footer.xsl"/>
+  <xsl:include href="local/headscripts.xsl"/>
+  <xsl:include href="local/headeradminproject.xsl"/>
 
-   <xsl:output method="xml" indent="yes"  doctype-public="-//W3C//DTD XHTML 1.0 Transitional//EN"
-   doctype-system="http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd" />
+  <xsl:output method="xml" indent="yes"  doctype-public="-//W3C//DTD XHTML 1.0 Transitional//EN"
+  doctype-system="http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd" />
 
-    <xsl:template match="/">
-      <html>
-       <head>
-       <title><xsl:value-of select="cdash/title"/></title>
+  <xsl:template match="/">
+    <html>
+
+      <head>
+        <title><xsl:value-of select="cdash/title"/></title>
         <meta name="robots" content="noindex,nofollow" />
-         <link rel="StyleSheet" type="text/css">
-         <xsl:attribute name="href"><xsl:value-of select="cdash/cssfile"/></xsl:attribute>
-         </link>
-       </head>
-       <body bgcolor="#ffffff">
+        <link rel="StyleSheet" type="text/css">
+          <xsl:attribute name="href"><xsl:value-of select="cdash/cssfile"/></xsl:attribute>
+        </link>
 
-<xsl:choose>
-<xsl:when test="/cdash/uselocaldirectory=1">
-  <xsl:call-template name="headeradminproject_local"/>
-</xsl:when>
-<xsl:otherwise>
-  <xsl:call-template name="headeradminproject"/>
-</xsl:otherwise>
-</xsl:choose>
+        <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css"/>
+        <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css"/>
 
-<br/>
+        <script src="//code.jquery.com/jquery-1.10.2.js"/>
+        <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"/>
+        <style>
+          #sortable
+            {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            }
+          #sortable
+            {
+            height: 425px;
+            }
+          #sortable li
+            {
+            margin: 0 3px 3px 3px;
+            padding: 3px;
+            height: 400px;
+            font-size: 1.4em;
+            border-style: solid;
+            border-width: 2px;
+            }
+          #instructions
+            {
+            margin-top: 20px;
+            }
+        </style>
 
+        <script src="javascript/cdashSortable.js"></script>
+        <script>
+          $(function() {
+            // setup sortable element
+            $( "#sortable" ).sortable();
+            $( "#sortable" ).disableSelection();
 
-<xsl:if test="string-length(cdash/warning)>0">
-<b>Warning: <xsl:value-of select="cdash/warning"/></b><br/><br/>
-</xsl:if>
+            // save layout function
+            $( "#saveLayout" ).click(function() {
+              var newLayout = JSON.stringify(get_sorted_elements("#sortable"));
+              $("#loading").attr("src", "images/loading.gif");
+              $.ajax(
+                {
+                url: "manageOverview.php",
+                type: "POST",
+                data: {saveLayout : newLayout},
+                success: function(data)
+                  {
+                  $("#loading").attr("src", "images/check.gif");
+                  },
+                error: function(e, s, t)
+                  {
+                  console.log("status: " + s);
+                  console.log("error thrown: " + t);
+                  }
+                });
+              });
 
-<table width="100%"  border="0">
-  <tr>
-    <td width="10%"><div align="right"><strong>Project:</strong></div></td>
-    <td width="90%" >
-    <form name="form1" method="post">
-    <xsl:attribute name="action">manageBanner.php?projectid=<xsl:value-of select="cdash/project/id"/></xsl:attribute>
-    <select onchange="location = 'manageBanner.php?projectid='+this.options[this.selectedIndex].value;" name="projectSelection">
-        <option>
-        <xsl:attribute name="value">-1</xsl:attribute>
-        Choose...
-        </option>
+            // add column function
+            $( "#addColumn" ).click(function() {
+              var newColumnName = $("#newColumn").find(":selected").text();
+              var newColumnId = $("#newColumn").val();
+              var newElement = $('<li class='col-md-2 measurement text-center'>\
+                  <div class='row'>\
+                    <div class='col-xs-1 col-xs-offset-9 glyphicon glyphicon-remove'>\
+                    </div>\
+                  </div>\
+                  <p id='label' class='text-center'>' + newColumnName + '</p>\
+                </li>\
+              ');
+              newElement.attr('id', newColumnId);
+              $( "#sortable" ).append(newElement);
+              $("#newColumn").find(":selected").remove();
+              //alert("new size: " + $("#newColumn").has("option").length);
+              if ($("#newColumn").has("option").length == 0)
+                {
+                $("#newColumn").prop("disabled", true);
+                $("#addColumn").prop("disabled", true);
+                }
+            });
 
-        <xsl:for-each select="cdash/availableproject">
-        <option>
-        <xsl:attribute name="value"><xsl:value-of select="id"/></xsl:attribute>
-        <xsl:if test="selected=1">
-        <xsl:attribute name="selected"></xsl:attribute>
-        </xsl:if>
-        <xsl:value-of select="name"/>
-        </option>
-        </xsl:for-each>
-        </select>
-      </form>
-    </td>
-  </tr>
-</table>
+            // remove column function
+            $( "#sortable" ).delegate(".glyphicon-remove", 'click', function() {
+              var listElement = $(this).closest("li");
+              var label = listElement.find("p").text();
+              listElement.remove();
+              $("#newColumn").append("<option>" + label + "</option>");
+              $("#newColumn").prop("disabled", false);
+              $("#addColumn").prop("disabled", false);
+            });
 
-<!-- If a project has been selected -->
-<xsl:if test="count(cdash/project)>-1">
-<form name="formnewgroup" method="post">
-<xsl:attribute name="action">manageBanner.php?projectid=<xsl:value-of select="cdash/project/id"/></xsl:attribute>
-<table width="100%"  border="0">
-  <tr>
-    <td><div align="right"></div></td>
-    <td bgcolor="#DDDDDD"><strong>Banner Message</strong></td>
-  </tr>
-  <tr>
-    <td width="10%"></td>
-    <td width="90%">
-    <textarea name="message" cols="100" rows="3"><xsl:value-of select="cdash/project/text"/></textarea>
-    </td>
-  </tr>
+          });
+          // add existing columns in xsl:for-each here
+        </script>
+      </head>
 
-  <tr>
-    <td><div align="right"></div></td>
-    <td><input type="submit" name="updateMessage" value="Update Message"/><br/><br/></td>
-  </tr>
-</table>
-</form>
+      <body bgcolor="#ffffff">
 
+        <xsl:choose>
+        <xsl:when test="/cdash/uselocaldirectory=1">
+          <xsl:call-template name="headeradminproject_local"/>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:call-template name="headeradminproject"/>
+        </xsl:otherwise>
+        </xsl:choose>
+        <br/>
 
-</xsl:if>
+        <div class="container" style="height:400px;">
+          <div class="row">
+            <div class="col-md-11">
+              <ul class="row" id="sortable">
+              </ul>
+              <div class="row">
+                <button type="submit" id="saveLayout" class="btn btn-default col-md-1">
+                  Save Layout
+                </button>
+                <div class="col-md-1">
+                  <img id="loading" style="height:16px; width=16px; margin-top:9px;"/>
+                </div>
+                <select id="newColumn" class="col-md-2 col-md-offset-4">
+                  <xsl:for-each select='/cdash/buildgroup'>
+                    <option>
+                      <xsl:attribute name="value"><xsl:value-of select="id"/></xsl:attribute>
+                      <xsl:value-of select="name"/>
+                    </option>
+                  </xsl:for-each>
+                </select>
+                <button id="addColumn" class="btn btn-default"> Add Column </button>
+              </div>
+              <div class="row" id="instructions">
+                <p>
+                  Add and remove columns above.
+                  Drag them into the proper order (if necessary).
+                  Once you are satisfied, click the "Save Layout" button.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
 
-<br/>
+        <!-- FOOTER -->
+        <br/>
+        <br/>
+        <br/>
+        <br/>
+        <br/>
+        <xsl:choose>
+        <xsl:when test="/cdash/uselocaldirectory=1">
+          <xsl:call-template name="footer_local"/>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:call-template name="footer"/>
+        </xsl:otherwise>
+        </xsl:choose>
 
-<!-- FOOTER -->
-<br/>
-
-<xsl:choose>
-<xsl:when test="/cdash/uselocaldirectory=1">
-  <xsl:call-template name="footer_local"/>
-</xsl:when>
-<xsl:otherwise>
-  <xsl:call-template name="footer"/>
-</xsl:otherwise>
-</xsl:choose>
-
-        </body>
-      </html>
-    </xsl:template>
+      </body>
+    </html>
+  </xsl:template>
 </xsl:stylesheet>

@@ -1,20 +1,5 @@
 <?php
-/*=========================================================================
 
-  Program:   CDash - Cross-Platform Dashboard System
-  Module:    $Id: manageBanner.php 3335 2013-07-17 21:38:13Z zack.galbreath $
-  Language:  PHP
-  Date:      $Date: 2013-07-17 21:38:13 +0000 (Wed, 17 Jul 2013) $
-  Version:   $Revision: 3335 $
-
-  Copyright (c) 2002 Kitware, Inc.  All rights reserved.
-  See Copyright.txt or http://www.cmake.org/HTML/Copyright.html for details.
-
-     This software is distributed WITHOUT ANY WARRANTY; without even
-     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-     PURPOSE.  See the above copyright notices for more information.
-
-=========================================================================*/
 include("cdash/config.php");
 require_once("cdash/pdo.php");
 include_once("cdash/common.php");
@@ -75,17 +60,53 @@ if($User->IsAdmin()===FALSE && $role<=1)
   return;
   }
 
-// If user is admin then we can add a banner for all projects
-if($User->IsAdmin() == true)
+// check if we are saving an overview layout
+if (isset($_POST['saveLayout']))
   {
-  $xml .= "<availableproject>";
-  $xml .= add_XML_value("id","0");
-  $xml .= add_XML_value("name","All");
-  if($projectid==0)
+  $inputRows = json_decode($_POST['saveLayout'], true);
+
+  if (count($inputRows) > 0)
     {
-    $xml .= add_XML_value("selected","1");
+    // remove old overview layout from this project
+    pdo_query(
+      "DELETE FROM overviewbuildgroups WHERE projectid=" .
+        qnum(pdo_real_escape_numeric($projectid)));
+
+    // construct query to insert the new layout
+    $query = "INSERT INTO overviewbuildgroups (projectid, buildgroupid, position) VALUES ";
+    foreach ($inputRows as $inputRow)
+      {
+      $query .= "(" .
+        qnum(pdo_real_escape_numeric($projectid)) . ", " .
+        qnum(pdo_real_escape_numeric($inputRow["buildgroupid"])) . ", " .
+        qnum(pdo_real_escape_numeric($inputRow["position"])) . "), ";
+      }
+
+    // remove the trailing comma and space, then insert our new values
+    $query = rtrim($query, ", ");
+    pdo_query($query);
     }
-  $xml .= "</availableproject>";
+
+  // since this is called by AJAX, we don't need to render the page below.
+  exit(0);
+  }
+
+// otherwise generate the .xml to render this page
+$xml .= "<project>";
+$xml .= add_XML_value("id",$Project->Id);
+$xml .= add_XML_value("name",$Project->GetName());
+$xml .= add_XML_value("name_encoded",urlencode($Project->GetName()));
+$xml .= "</project>";
+
+// Get the groups for this project
+$query = "SELECT id, name FROM buildgroup WHERE projectid='$projectid'";
+$buildgroup_rows = pdo_query($query);
+while($buildgroup_row = pdo_fetch_array($buildgroup_rows))
+  {
+  $xml .= "<buildgroup>";
+  $xml .= add_XML_value("id", $buildgroup_row["id"]);
+  $xml .= add_XML_value("name", $buildgroup_row["name"]);
+  $xml .= "</buildgroup>";
   }
 
 $xml .= "</cdash>";
