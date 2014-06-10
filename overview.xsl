@@ -93,7 +93,7 @@
                 <td class="col-md-1">
                   <xsl:value-of select="value"/>
                 </td>
-                <td class="col-md-1" id="{group_name}_{$measurement_name}_chart" style="height:25px;">
+                <td class="col-md-1" id="{group_name}_{$measurement_name}_chart" style="height:51px;">
                   <svg></svg>
                 </td>
               </xsl:for-each>
@@ -101,12 +101,12 @@
           </xsl:for-each>
 
           <xsl:for-each select='/cdash/coverage'>
-            <tr class="row">
+            <tr class="row" style="height:50px;">
               <td class="col-md-1"><b><xsl:value-of select="nice_name"/> coverage</b></td>
               <td class="col-md-1">
                 <xsl:value-of select="current"/>%
               </td>
-              <td id="{name}_coverage_chart" class="col-md-1" style="height:25px;">
+              <td id="{name}_coverage_chart" class="col-md-1" style="height:50px;">
                 <svg></svg>
               </td>
               <td id="{name}_coverage_bullet" class="col-md-4" colspan="4" style="height:50px; width:100%;">
