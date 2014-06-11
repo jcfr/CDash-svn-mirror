@@ -2,10 +2,10 @@
 /*=========================================================================
 
   Program:   CDash - Cross-Platform Dashboard System
-  Module:    $Id: sendemail.php 3499 2014-05-11 16:11:23Z jjomier $
+  Module:    $Id: sendemail.php 3510 2014-05-28 08:43:42Z jjomier $
   Language:  PHP
-  Date:      $Date: 2014-05-11 16:11:23 +0000 (Sun, 11 May 2014) $
-  Version:   $Revision: 3499 $
+  Date:      $Date: 2014-05-28 08:43:42 +0000 (Wed, 28 May 2014) $
+  Version:   $Revision: 3510 $
 
   Copyright (c) 2002 Kitware, Inc.  All rights reserved.
   See Copyright.txt or http://www.cmake.org/HTML/Copyright.html for details.
@@ -615,11 +615,13 @@ function sendsummaryemail($projectid,$groupid,$errors,$buildid)
   require_once("models/userproject.php");
   require_once("models/user.php");
   require_once("models/project.php");
-
+  require_once("models/build.php");
+  require_once("models/site.php");
+  
   $Project = new Project();
   $Project->Id = $projectid;
   $Project->Fill();
-
+  
   // Check if the email has been sent
   $date = ""; // now
   list ($previousdate, $currentstarttime, $nextdate, $today) = get_dates($date,$Project->NightlyTime);
@@ -789,6 +791,11 @@ function sendsummaryemail($projectid,$groupid,$errors,$buildid)
   // Send the email
   if($summaryEmail != "")
     {
+    $Build = new Build();
+    $Build->FillFromId($buildid);
+    $Site = new Site();
+    $Site->Id = $Build->SiteId;
+
     $summaryemail_array = pdo_fetch_array(pdo_query("SELECT name FROM buildgroup WHERE id=$groupid"));
     add_last_sql_error("sendsummaryemail");
 
@@ -798,6 +805,8 @@ function sendsummaryemail($projectid,$groupid,$errors,$buildid)
     $messagePlainText .= "You have been identified as one of the authors who have checked in changes that are part of this submission ";
     $messagePlainText .= "or you are listed in the default contact list.\n\n";
 
+    $messagePlainText .= "Site name: ".$Site->GetName()."\n";
+    $messagePlainText .= "Build name: ".$Build->Name." (".$Build->Type.")\n";
     $messagePlainText .= "To see this dashboard:\n";
     $messagePlainText .= $currentURI;
     $messagePlainText .= "/index.php?project=".urlencode($Project->Name)."&date=".$today;

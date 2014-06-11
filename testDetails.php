@@ -2,10 +2,10 @@
 /*=========================================================================
 
   Program:   CDash - Cross-Platform Dashboard System
-  Module:    $Id: testDetails.php 3503 2014-05-12 07:11:41Z jjomier $
+  Module:    $Id: testDetails.php 3513 2014-05-28 15:13:26Z jjomier $
   Language:  PHP
-  Date:      $Date: 2014-05-12 07:11:41 +0000 (Mon, 12 May 2014) $
-  Version:   $Revision: 3503 $
+  Date:      $Date: 2014-05-28 15:13:26 +0000 (Wed, 28 May 2014) $
+  Version:   $Revision: 3513 $
 
   Copyright (c) 2002 Kitware, Inc.  All rights reserved.
   See Copyright.txt or http://www.cmake.org/HTML/Copyright.html for details.
@@ -285,7 +285,7 @@ else
 
 //get any images associated with this test
 $query = "SELECT imgid,role FROM test2image WHERE testid = '$testid' AND (role='TestImage' "
-        . "OR role='ValidImage' OR role='DifferenceImage2') ORDER BY id";
+        . "OR role='ValidImage' OR role='BaselineImage' OR role='DifferenceImage2') ORDER BY id";
 $result = pdo_query($query);
 if(pdo_num_rows($result)>0)
   {
@@ -302,7 +302,7 @@ if(pdo_num_rows($result)>0)
   
 $xml .= "<images>";
 $query = "SELECT imgid,role FROM test2image WHERE testid = '$testid' "
-        . "AND role!='ValidImage' AND role!='DifferenceImage2' ORDER BY id";
+        . "AND role!='ValidImage' AND role!='BaselineImage' AND role!='DifferenceImage2' ORDER BY id";
 $result = pdo_query($query);
 while($row = pdo_fetch_array($result))
   {

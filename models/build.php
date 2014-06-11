@@ -2,10 +2,10 @@
 /*=========================================================================
 
   Program:   CDash - Cross-Platform Dashboard System
-  Module:    $Id: build.php 3426 2014-01-21 16:14:57Z jjomier $
+  Module:    $Id: build.php 3509 2014-05-28 07:13:11Z jjomier $
   Language:  PHP
-  Date:      $Date: 2014-01-21 16:14:57 +0000 (Tue, 21 Jan 2014) $
-  Version:   $Revision: 3426 $
+  Date:      $Date: 2014-05-28 07:13:11 +0000 (Wed, 28 May 2014) $
+  Version:   $Revision: 3509 $
 
   Copyright (c) 2002 Kitware, Inc.  All rights reserved.
   See Copyright.txt or http://www.cmake.org/HTML/Copyright.html for details.
@@ -1177,14 +1177,16 @@ class Build
         $nfixedtests = abs($testdiff);
         }
 
-      pdo_query("UPDATE userstatistics SET totalupdatedfiles=totalupdatedfiles+1,
-                  totalbuilds=totalbuilds+'$totalbuilds',
-                  nfixedwarnings=nfixedwarnings+'$nfixedwarnings',
-                  nfailedwarnings=nfailedwarnings+'$nfailedwarnings',
-                  nfixederrors=nfixederrors+'$nfixederrors',
-                  nfailederrors=nfailederrors+'$nfailederrors',
-                  nfixedtests=nfixedtests+'$nfixedtests',
-                  nfailedtests=nfailedtests+'$nfailedtests' WHERE userid=".qnum($userid)." AND projectid=".qnum($this->ProjectId)." AND checkindate>='$checkindate'");
+      pdo_query("UPDATE userstatistics
+                 SET totalupdatedfiles=totalupdatedfiles+".qnum(1).",
+                   totalbuilds=totalbuilds+".qnum($totalbuilds).",
+                   nfixedwarnings=nfixedwarnings+".qnum($nfixedwarnings).",
+                   nfailedwarnings=nfailedwarnings+".qnum($nfailedwarnings).",
+                   nfixederrors=nfixederrors+".qnum($nfixederrors).",
+                   nfailederrors=nfailederrors+".qnum($nfailederrors).",
+                   nfixedtests=nfixedtests+".qnum($nfixedtests).",
+                   nfailedtests=nfailedtests+".qnum($nfailedtests)."
+                 WHERE userid=".qnum($userid)." AND projectid=".qnum($this->ProjectId)." AND checkindate>='$checkindate'");
       add_last_sql_error("Build:AddUpdateStatistics",$this->ProjectId,$this->Id);
       }
     else // insert into the database
@@ -1229,14 +1231,16 @@ class Build
         $totalbuilds=1;
         }
 
-      pdo_query("UPDATE userstatistics SET totalupdatedfiles=totalupdatedfiles+1,
-                 totalbuilds=totalbuilds+1,
-                 nfixedwarnings=nfixedwarnings+'$nfixedwarnings',
-                 nfailedwarnings=nfailedwarnings+'$nfailedwarnings',
-                 nfixederrors=nfixederrors+'$nfixederrors',
-                 nfailederrors=nfailederrors+'$nfailederrors',
-                 nfixedtests=nfixedtests+'$nfixedtests',
-                 nfailedtests=nfailedtests+'$nfailedtests' WHERE userid=".qnum($userid)." AND projectid=".qnum($this->ProjectId)." AND checkindate>'$checkindate'");
+      pdo_query("UPDATE userstatistics
+                 SET totalupdatedfiles=totalupdatedfiles+".qnum(1).",
+                   totalbuilds=totalbuilds+".qnum(1).",
+                   nfixedwarnings=nfixedwarnings+".qnum($nfixedwarnings).",
+                   nfailedwarnings=nfailedwarnings+".qnum($nfailedwarnings).",
+                   nfixederrors=nfixederrors+".qnum($nfixederrors).",
+                   nfailederrors=nfailederrors+".qnum($nfailederrors).",
+                   nfixedtests=nfixedtests+".qnum($nfixedtests).",
+                   nfailedtests=nfailedtests+".qnum($nfailedtests)."
+                 WHERE userid=".qnum($userid)." AND projectid=".qnum($this->ProjectId)." AND checkindate>'$checkindate'");
 
       add_last_sql_error("Build:AddUpdateStatistics",$this->ProjectId,$this->Id);
 

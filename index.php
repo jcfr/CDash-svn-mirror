@@ -2,10 +2,10 @@
 /*=========================================================================
 
   Program:   CDash - Cross-Platform Dashboard System
-  Module:    $Id: index.php 3474 2014-05-08 10:45:30Z jjomier $
+  Module:    $Id: index.php 3514 2014-05-29 13:38:26Z jjomier $
   Language:  PHP
-  Date:      $Date: 2014-05-08 10:45:30 +0000 (Thu, 08 May 2014) $
-  Version:   $Revision: 3474 $
+  Date:      $Date: 2014-05-29 13:38:26 +0000 (Thu, 29 May 2014) $
+  Version:   $Revision: 3514 $
 
   Copyright (c) 2002 Kitware, Inc.  All rights reserved.
   See Copyright.txt or http://www.cmake.org/HTML/Copyright.html for details.
@@ -51,7 +51,7 @@ function generate_index_table()
   $xml .= "<date>".date("r")."</date>";
 
   // Check if the database is up to date
-  if(!pdo_query("SELECT id FROM feed LIMIT 1") )
+  if(!pdo_query("SELECT coveragethreshold2 FROM project LIMIT 1") )
     {
     $xml .= "<upgradewarning>1</upgradewarning>";
     }
