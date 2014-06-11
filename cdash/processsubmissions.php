@@ -2,10 +2,10 @@
 /*=========================================================================
 
   Program:   CDash - Cross-Platform Dashboard System
-  Module:    $Id: processsubmissions.php 3516 2014-06-04 12:38:29Z zack.galbreath $
+  Module:    $Id: processsubmissions.php 3517 2014-06-11 15:16:46Z zack.galbreath $
   Language:  PHP
-  Date:      $Date: 2014-06-04 12:38:29 +0000 (Wed, 04 Jun 2014) $
-  Version:   $Revision: 3516 $
+  Date:      $Date: 2014-06-11 15:16:46 +0000 (Wed, 11 Jun 2014) $
+  Version:   $Revision: 3517 $
 
   Copyright (c) 2002 Kitware, Inc.  All rights reserved.
   See Copyright.txt or http://www.cmake.org/HTML/Copyright.html for details.
@@ -425,7 +425,7 @@ function DeleteOldSubmissionRecords($projectid)
     }
   // Avoid conditional ", " emission in the loop. OK to repeat an
   // element in this DELETE IN type of query:
-  $idset .= "'".$ids[0]."')";
+  $idset .= "'".$ids[0]["id"]."')";
 
   pdo_delete_query("DELETE FROM submission WHERE id IN ".$idset);
   pdo_delete_query("DELETE FROM client_jobschedule2submission WHERE submissionid IN ".$idset);
