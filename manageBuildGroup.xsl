@@ -24,17 +24,45 @@
           <link rel="stylesheet" href="tabs_ie.css" type="text/css" media="projection, screen" />
           <![endif]]]>
         </xsl:comment>
-        <script src="javascript/jquery-1.6.2.js" type="text/javascript"></script>
-        <script src="javascript/ui.tabs.js" type="text/javascript"></script>
+        <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css"/>
 
         <script src="//code.jquery.com/jquery-1.10.2.js"/>
         <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"/>
         <script src="javascript/cdashSortable.js"></script>
         <script>
+        // copied from old tabs.js.  Needs a new home (not here)...
+        function showHelpTop(id_div)
+          {
+          $(".tab_help_top").html($("#"+id_div).html()).show();
+          }
+
         $(function() {
+
+          // function to alternate the color of the rows in our group table
+          function restripe()
+            {
+            $( "#sortable tr" ).each(function () {
+              $(this).removeClass("trodd");
+              $(this).removeClass("treven");
+            });
+            $( "#sortable tr:odd" ).each(function () {
+              $(this).addClass("trodd");
+            });
+            $( "#sortable tr:even" ).each(function () {
+              $(this).addClass("treven");
+            });
+            }
+
           // setup sortable element
-          $( "#sortable" ).sortable();
-          $( "#sortable" ).disableSelection();
+          $( "#sortable tbody" ).sortable(
+            {
+            stop: function(event, ui)
+              {
+              restripe();
+              }
+            }
+          );
+          $( "#sortable tbody" ).disableSelection();
 
           // save layout function
           $( "#saveLayout" ).click(function() {
@@ -56,6 +84,10 @@
                 }
               });
             });
+
+          restripe();
+          $( "#wizard" ).tabs();
+
         });
         </script>
 
@@ -128,21 +160,11 @@
             <xsl:if test="count(cdash/project)>0">
               <div id="wizard">
                 <ul>
-                  <li>
-                    <a href="#fragment-1"><span>Current groups</span></a>
-                  </li>
-                  <li>
-                    <a href="#fragment-2"><span>Create new group</span></a>
-                  </li>
-                  <li>
-                    <a href="#fragment-3"><span>Global Move</span></a>
-                  </li>
-                  <li>
-                    <a href="#fragment-4"><span>Auto-Remove Settings</span></a>
-                  </li>
-                  <li>
-                    <a href="#fragment-5"><span>Define Group by Build Name</span></a>
-                  </li>
+                  <li><a href="#fragment-1">Current groups</a></li>
+                  <li><a href="#fragment-2">Create new group</a></li>
+                  <li><a href="#fragment-3">Global Move</a></li>
+                  <li><a href="#fragment-4">Auto-Remove Settings</a></li>
+                  <li><a href="#fragment-5">Define Group by Build Name</a></li>
                 </ul>
                 <div id="fragment-1" class="tab_content" >
                   <div class="tab_help_top"></div>
@@ -151,19 +173,10 @@
                       <tr>
                         <td><div align="right"></div></td>
                         <td>
-                          <table border="0" width="100%">
+                          <table id="sortable" border="0" width="100%">
                             <xsl:for-each select="cdash/project/group">
                               <tr>
-                                <xsl:attribute name="bgcolor"><xsl:value-of select="bgcolor"/></xsl:attribute>
                                 <td><xsl:value-of select="name"/></td>
-                                <td>
-                                  <a>
-                                    <xsl:attribute name="href">manageBuildGroup.php?projectid=<xsl:value-of select="/cdash/project/id"/>&amp;groupid=<xsl:value-of select="id"/>&amp;up=1</xsl:attribute> up
-                                  </a>
-                                  <a>
-                                    <xsl:attribute name="href">manageBuildGroup.php?projectid=<xsl:value-of select="/cdash/project/id"/>&amp;groupid=<xsl:value-of select="id"/>&amp;down=1</xsl:attribute> down
-                                  </a>
-                                </td>
                                 <td>
                                   <form method="post">
                                     <xsl:attribute name="name">form_<xsl:value-of select="id"/></xsl:attribute>

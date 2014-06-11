@@ -24,9 +24,6 @@
 
         <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css"/>
         <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css"/>
-
-        <script src="//code.jquery.com/jquery-1.10.2.js"/>
-        <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"/>
         <style>
           #sortable
             {
@@ -53,6 +50,8 @@
             }
         </style>
 
+        <script src="//code.jquery.com/jquery-1.10.2.js"/>
+        <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"/>
         <script src="javascript/cdashSortable.js"></script>
         <script>
           $(function() {
