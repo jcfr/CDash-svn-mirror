@@ -82,9 +82,8 @@
               });
 
             // add column function
-            $( "#addColumn" ).click(function() {
-              var newColumnName = $("#newColumn").find(":selected").text();
-              var newColumnId = $("#newColumn").val();
+            function addColumn(newColumnName, newColumnId)
+              {
               var newElement = $('<li class='col-md-2 measurement text-center'>\
                   <div class='row'>\
                     <div class='col-xs-1 col-xs-offset-9 glyphicon glyphicon-remove'>\
@@ -95,13 +94,19 @@
               ');
               newElement.attr('id', newColumnId);
               $( "#sortable" ).append(newElement);
-              $("#newColumn").find(":selected").remove();
-              //alert("new size: " + $("#newColumn").has("option").length);
+              $("#newColumn").find("option[value=" + newColumnId + "]").remove();
               if ($("#newColumn").has("option").length == 0)
                 {
                 $("#newColumn").prop("disabled", true);
                 $("#addColumn").prop("disabled", true);
                 }
+              }
+
+            // call addColumn when the appropriate button is clicked.
+            $( "#addColumn" ).click(function() {
+              var newColumnName = $("#newColumn").find(":selected").text();
+              var newColumnId = $("#newColumn").val();
+              addColumn(newColumnName, newColumnId);
             });
 
             // remove column function
@@ -114,8 +119,11 @@
               $("#addColumn").prop("disabled", false);
             });
 
+            // add existing columns
+            <xsl:for-each select='/cdash/overviewgroup'>
+              addColumn('<xsl:value-of select="name"/>', <xsl:value-of select="id"/>);
+            </xsl:for-each>
           });
-          // add existing columns in xsl:for-each here
         </script>
       </head>
 
