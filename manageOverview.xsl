@@ -167,6 +167,7 @@
                   Drag them into the proper order (if necessary).
                   Once you are satisfied, click the "Save Layout" button.
                 </p>
+                <a><xsl:attribute name="href">overview.php?project=<xsl:value-of select="cdash/project/name_encoded"/></xsl:attribute>Go to overview</a>
               </div>
             </div>
           </div>

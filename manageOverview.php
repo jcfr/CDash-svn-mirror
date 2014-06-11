@@ -71,6 +71,7 @@ if (isset($_POST['saveLayout']))
     pdo_query(
       "DELETE FROM overviewbuildgroups WHERE projectid=" .
         qnum(pdo_real_escape_numeric($projectid)));
+    add_last_sql_error("manageOverview::saveLayout::DELETE", $projectid);
 
     // construct query to insert the new layout
     $query = "INSERT INTO overviewbuildgroups (projectid, buildgroupid, position) VALUES ";
@@ -85,6 +86,7 @@ if (isset($_POST['saveLayout']))
     // remove the trailing comma and space, then insert our new values
     $query = rtrim($query, ", ");
     pdo_query($query);
+    add_last_sql_error("manageOverview::saveLayout::INSERT", $projectid);
     }
 
   // since this is called by AJAX, we don't need to render the page below.
@@ -101,6 +103,7 @@ $xml .= "</project>";
 // Get the groups for this project
 $query = "SELECT id, name FROM buildgroup WHERE projectid='$projectid'";
 $buildgroup_rows = pdo_query($query);
+add_last_sql_error("manageOverview::buildgroups", $projectid);
 while($buildgroup_row = pdo_fetch_array($buildgroup_rows))
   {
   $xml .= "<buildgroup>";
@@ -116,6 +119,7 @@ $query =
    WHERE obg.projectid = " . qnum(pdo_real_escape_numeric($projectid)) . "
    ORDER BY obg.position";
 $overviewgroup_rows = pdo_query($query);
+add_last_sql_error("manageOverview::overviewgroups", $projectid);
 while($overviewgroup_row = pdo_fetch_array($overviewgroup_rows))
   {
   $xml .= "<overviewgroup>";

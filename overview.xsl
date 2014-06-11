@@ -14,14 +14,16 @@
       <head>
         <title><xsl:value-of select="cdash/title"/></title>
         <meta name="robots" content="noindex,nofollow" />
-        <link rel="StyleSheet" type="text/css">
-          <xsl:attribute name="href"><xsl:value-of select="cdash/cssfile"/></xsl:attribute>
-        </link>
         <xsl:call-template name="headscripts"/>
 
         <!-- Include static css -->
         <link href="nv.d3.css" rel="stylesheet" type="text/css"/>
         <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css"/>
+
+        <!-- Include CDash's css -->
+        <link rel="StyleSheet" type="text/css">
+          <xsl:attribute name="href"><xsl:value-of select="cdash/cssfile"/></xsl:attribute>
+        </link>
 
         <!-- Include JavaScript -->
         <script src="javascript/cdashBuildGraph.js" type="text/javascript" charset="utf-8"></script>
@@ -37,24 +39,24 @@
             <xsl:variable name="measurement_name" select="name"/>
             <xsl:variable name="measurement_nice_name" select="nice_name"/>
             <xsl:for-each select='group'>
-              var <xsl:value-of select="group_name"/>_<xsl:value-of select="$measurement_name"/> =
+              var <xsl:value-of select="group_name_clean"/>_<xsl:value-of select="$measurement_name"/> =
                 <xsl:value-of select="chart"/>;
-              make_line_chart("<xsl:value-of select="group_name"/>" + " " + "<xsl:value-of select="$measurement_nice_name"/>",
-                              "#<xsl:value-of select="group_name"/>_<xsl:value-of select="$measurement_name"/>_chart svg",
-                              <xsl:value-of select="group_name"/>_<xsl:value-of select="$measurement_name"/>);
+              makeLineChart("<xsl:value-of select="group_name"/>" + " " + "<xsl:value-of select="$measurement_nice_name"/>",
+                            "#<xsl:value-of select="group_name_clean"/>_<xsl:value-of select="$measurement_name"/>_chart svg",
+                            <xsl:value-of select="group_name_clean"/>_<xsl:value-of select="$measurement_name"/>);
             </xsl:for-each>
           </xsl:for-each>
 
           <xsl:for-each select='/cdash/coverage'>
             var <xsl:value-of select="name"/> = <xsl:value-of select="chart"/>;
-            make_line_chart("<xsl:value-of select="nice_name"/> coverage",
+            makeLineChart("<xsl:value-of select="nice_name"/> coverage",
                             "#<xsl:value-of select="name"/>_coverage_chart svg",
                             <xsl:value-of select="name"/>);
-            make_bullet_chart("<xsl:value-of select="nice_name"/> coverage",
+            makeBulletChart("<xsl:value-of select="nice_name"/> coverage",
               "#<xsl:value-of select="name"/>_coverage_bullet svg",
-              <xsl:value-of select="min"/>,
-              <xsl:value-of select="average"/>,
-              <xsl:value-of select="max"/>,
+              <xsl:value-of select="low"/>,
+              <xsl:value-of select="medium"/>,
+              <xsl:value-of select="satisfactory"/>,
               <xsl:value-of select="current"/>,
               <xsl:value-of select="previous"/>,
               25);
@@ -93,7 +95,7 @@
                 <td class="col-md-1">
                   <xsl:value-of select="value"/>
                 </td>
-                <td class="col-md-1" id="{group_name}_{$measurement_name}_chart" style="height:51px;">
+                <td class="col-md-1" id="{group_name_clean}_{$measurement_name}_chart" style="height:51px;">
                   <svg></svg>
                 </td>
               </xsl:for-each>

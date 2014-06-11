@@ -1,4 +1,4 @@
-function make_line_chart(chart_name, element_name, input_data) {
+function makeLineChart(chartName, elementName, inputData) {
   var chart;
 
   nv.addGraph(function() {
@@ -11,12 +11,12 @@ function make_line_chart(chart_name, element_name, input_data) {
     });
 
     var chart_data = [{
-      values: input_data,
-      key: chart_name,
+      values: inputData,
+      key: chartName,
       color: "#ff7f0e",
       area: false
     }];
-    d3.select(element_name)
+    d3.select(elementName)
       .datum(chart_data)
       .call(chart);
 
