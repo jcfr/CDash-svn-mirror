@@ -60,13 +60,10 @@ if($User->IsAdmin()===FALSE && $role<=1)
   return;
   }
 
-file_put_contents("/tmp/zackdebug.txt", "about to check if we're saving a new layout\n");
 // check if we are saving an overview layout
 if (isset($_POST['saveLayout']))
   {
-  file_put_contents("/tmp/zackdebug.txt", "we are!\nhere's the data I received:\n", FILE_APPEND);
   $inputRows = json_decode($_POST['saveLayout'], true);
-  file_put_contents("/tmp/zackdebug.txt", print_r($inputRows, true), FILE_APPEND);
 
   if (count($inputRows) > 0)
     {

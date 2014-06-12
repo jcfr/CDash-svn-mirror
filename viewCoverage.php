@@ -4,7 +4,7 @@
   Program:   CDash - Cross-Platform Dashboard System
   Module:    $Id: viewCoverage.php 3518 2014-06-12 16:14:33Z zack.galbreath $
   Language:  PHP
-  Date:      $Date: 2014-06-12 12:14:33 -0400 (Thu, 12 Jun 2014) $
+  Date:      $Date: 2014-06-12 16:14:33 +0000 (Thu, 12 Jun 2014) $
   Version:   $Revision: 3518 $
 
   Copyright (c) 2002 Kitware, Inc.  All rights reserved.
