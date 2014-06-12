@@ -24,10 +24,11 @@
           <link rel="stylesheet" href="tabs_ie.css" type="text/css" media="projection, screen" />
           <![endif]]]>
         </xsl:comment>
-        <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css"/>
+        <link rel="stylesheet" href="css/jquery-ui.css"/>
+        <link rel="stylesheet" href="css/bootstrap.min.css"/>
 
-        <script src="//code.jquery.com/jquery-1.10.2.js"/>
-        <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"/>
+        <script src="javascript/jquery-1.10.2.js"/>
+        <script src="javascript/jquery-ui-1.10.4.min.js"/>
         <script src="javascript/cdashSortable.js"></script>
         <script>
         // copied from old tabs.js.  Needs a new home (not here)...
@@ -53,8 +54,8 @@
             });
             }
 
-          // setup sortable element
-          $( "#sortable tbody" ).sortable(
+          // setup sortable table rows
+          $( "#sortable" ).sortable(
             {
             stop: function(event, ui)
               {
@@ -62,11 +63,25 @@
               }
             }
           );
-          $( "#sortable tbody" ).disableSelection();
+          $( "#sortable" ).disableSelection();
+
+          // setup collapsible table cells
+          $( ".toggleCollapse" ).click(function() {
+            $(this).closest("tr").find(".collapsible").slideToggle("slow");
+            $(this).closest("tr").find(".help").slideToggle("slow");
+            if ($(this).hasClass("glyphicon-folder-open")) {
+              $(this).removeClass("glyphicon-folder-open");
+              $(this).addClass("glyphicon-folder-close");
+            }
+            else {
+              $(this).removeClass("glyphicon-folder-close");
+              $(this).addClass("glyphicon-folder-open");
+            }
+          });
 
           // save layout function
           $( "#saveLayout" ).click(function() {
-            var newLayout = JSON.stringify(get_sorted_elements("#sortable"));
+            var newLayout = JSON.stringify(getSortedElements("#sortable"));
             $("#loading").attr("src", "images/loading.gif");
             $.ajax(
               {
@@ -173,76 +188,82 @@
                       <tr>
                         <td><div align="right"></div></td>
                         <td>
-                          <table id="sortable" border="0" width="100%">
-                            <xsl:for-each select="cdash/project/group">
-                              <tr>
-                                <td><xsl:value-of select="name"/></td>
-                                <td>
-                                  <form method="post">
-                                    <xsl:attribute name="name">form_<xsl:value-of select="id"/></xsl:attribute>
-                                    <xsl:attribute name="action">manageBuildGroup.php?projectid=<xsl:value-of select="/cdash/project/id"/></xsl:attribute>
-                                    <input type="hidden" name="groupid">
-                                      <xsl:attribute name="value"><xsl:value-of select="id"/></xsl:attribute>
-                                    </input>
-                                    <xsl:if test="name!='Nightly' and name!='Experimental' and name !='Continuous'">
-                                      <!-- cannot rename Nightly/Continuous/Experimental -->
-                                      <input name="newname" type="text" id="newname" size="20"/><input type="submit" name="rename" value="Rename"/>
-                                    </xsl:if>
-                                    <xsl:if test="name!='Nightly' and name!='Experimental' and name !='Continuous'">
-                                      <!-- cannot delete Nightly/Continuous/Experimental -->
-                                      <input type="submit" name="deleteGroup" value="Delete" onclick="return confirmDelete()"/>
-                                    </xsl:if>
-                                  </form>
-                                </td>
-                                <td>
-                                  <form method="post">
-                                    <xsl:attribute name="name">form_<xsl:value-of select="id"/>_2</xsl:attribute>
-                                    <xsl:attribute name="action">manageBuildGroup.php?projectid=<xsl:value-of select="/cdash/project/id"/></xsl:attribute>
-                                    <input type="hidden" name="groupid">
-                                      <xsl:attribute name="value"><xsl:value-of select="id"/></xsl:attribute>
-                                    </input>
-                                    <input name="description" type="text" size="30">
-                                      <xsl:attribute name="value"><xsl:value-of select="description"/></xsl:attribute>
-                                    </input>
-                                    <input type="submit" name="submitDescription" value="Update Description"/>
-                                    <br/>
-                                    <input name="summaryEmail" onclick="form.submit();" type="checkbox" value="1">
-                                      <xsl:if test="summaryemail=1">
-                                        <xsl:attribute name="checked">checked</xsl:attribute>
-                                       </xsl:if>
-                                    </input>
-                                    Summary email
-                                    <br/>
-                                    <input name="summaryEmail" onclick="form.submit();" type="checkbox" value="2">
-                                      <xsl:if test="summaryemail=2">
-                                        <xsl:attribute name="checked">checked</xsl:attribute>
+                          <table border="0" width="100%">
+                            <tbody id="sortable">
+                              <xsl:for-each select="cdash/project/group">
+                                <tr id="{id}" style="cursor: move;">
+                                  <td><xsl:value-of select="name"/></td>
+                                  <td>
+                                    <form method="post">
+                                      <xsl:attribute name="name">form_<xsl:value-of select="id"/></xsl:attribute>
+                                      <xsl:attribute name="action">manageBuildGroup.php?projectid=<xsl:value-of select="/cdash/project/id"/></xsl:attribute>
+                                      <input type="hidden" name="groupid">
+                                        <xsl:attribute name="value"><xsl:value-of select="id"/></xsl:attribute>
+                                      </input>
+                                      <xsl:if test="name!='Nightly' and name!='Experimental' and name !='Continuous'">
+                                        <!-- cannot rename Nightly/Continuous/Experimental -->
+                                        <input name="newname" type="text" id="newname" size="20"/><input type="submit" name="rename" value="Rename"/>
                                       </xsl:if>
-                                    </input>
-                                    No email
-                                    <br/>
-                                    <input name="emailCommitters" onclick="form.submit();" type="checkbox" value="1">
-                                      <xsl:if test="emailcommitters != 0">
-                                        <xsl:attribute name="checked">checked</xsl:attribute>
+                                      <xsl:if test="name!='Nightly' and name!='Experimental' and name !='Continuous'">
+                                        <!-- cannot delete Nightly/Continuous/Experimental -->
+                                        <input type="submit" name="deleteGroup" value="Delete" onclick="return confirmDelete()"/>
                                       </xsl:if>
-                                    </input>
-                                    Email committers
-                                    <br/>
-                                    <input name="includeInSummary" onclick="form.submit();" type="checkbox" value="1">
-                                      <xsl:if test="includeinsummary=1">
-                                        <xsl:attribute name="checked">checked</xsl:attribute>
-                                       </xsl:if>
-                                    </input>
-                                    Included in subproject summary
-                                    <br/>
-                                  </form>
-                                </td>
-                                <td>
-                                  <a href="http://public.kitware.com/Wiki/CDash:Administration#Creating_a_project" target="blank">
-                                    <img onmouseover="showHelpTop('summary_help');" src="images/help.gif" border="0"/>
-                                  </a>
-                                </td>
-                              </tr>
-                            </xsl:for-each>
+                                    </form>
+                                  </td>
+                                  <td class="collapsible" style="display:none;">
+                                    <form method="post">
+                                      <xsl:attribute name="name">form_<xsl:value-of select="id"/>_2</xsl:attribute>
+                                      <xsl:attribute name="action">manageBuildGroup.php?projectid=<xsl:value-of select="/cdash/project/id"/></xsl:attribute>
+                                      <input type="hidden" name="groupid">
+                                        <xsl:attribute name="value"><xsl:value-of select="id"/></xsl:attribute>
+                                      </input>
+                                      <input name="description" type="text" size="30">
+                                        <xsl:attribute name="value"><xsl:value-of select="description"/></xsl:attribute>
+                                      </input>
+                                      <input type="submit" name="submitDescription" value="Update Description"/>
+                                      <br/>
+                                      <input name="summaryEmail" onclick="form.submit();" type="checkbox" value="1">
+                                        <xsl:if test="summaryemail=1">
+                                          <xsl:attribute name="checked">checked</xsl:attribute>
+                                         </xsl:if>
+                                      </input>
+                                      Summary email
+                                      <br/>
+                                      <input name="summaryEmail" onclick="form.submit();" type="checkbox" value="2">
+                                        <xsl:if test="summaryemail=2">
+                                          <xsl:attribute name="checked">checked</xsl:attribute>
+                                        </xsl:if>
+                                      </input>
+                                      No email
+                                      <br/>
+                                      <input name="emailCommitters" onclick="form.submit();" type="checkbox" value="1">
+                                        <xsl:if test="emailcommitters != 0">
+                                          <xsl:attribute name="checked">checked</xsl:attribute>
+                                        </xsl:if>
+                                      </input>
+                                      Email committers
+                                      <br/>
+                                      <input name="includeInSummary" onclick="form.submit();" type="checkbox" value="1">
+                                        <xsl:if test="includeinsummary=1">
+                                          <xsl:attribute name="checked">checked</xsl:attribute>
+                                         </xsl:if>
+                                      </input>
+                                      Included in subproject summary
+                                      <br/>
+                                    </form>
+                                  </td>
+                                  <td class="help" style="display:none;">
+                                    <a href="http://public.kitware.com/Wiki/CDash:Administration#Creating_a_project" target="blank">
+                                      <img onmouseover="showHelpTop('summary_help');" src="images/help.gif" border="0"/>
+                                    </a>
+                                  </td>
+                                  <td>
+                                    <div class="toggleCollapse glyphicon glyphicon-folder-close" style="padding: 10px;" title="Collapse or expand more options for this build group">
+                                    </div>
+                                  </td>
+                                </tr>
+                              </xsl:for-each>
+                            </tbody>
                           </table>
                         </td>
                       </tr>
@@ -258,6 +279,9 @@
                         <td></td>
                       </tr>
                     </table>
+                    <br/>
+                    <button type="submit" id="saveLayout">Update Group Order</button>
+                    <img id="loading" style="height:16px; width=16px; margin-top:9px;"/>
                   </div>
                   <div id="fragment-2" class="tab_content" >
                     <div class="tab_help"></div>

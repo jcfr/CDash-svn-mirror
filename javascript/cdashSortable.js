@@ -1,6 +1,6 @@
-// assumes the labels of the sortable child elements
-// are stored within <p> tags
-function get_sorted_elements(parent) {
+// assumes the ids of the sortable child elements
+// are properly set
+function getSortedElements(parent) {
   var positions = [];
   $(parent).children().each(function() {
     var pos = {};

@@ -17,8 +17,8 @@
         <xsl:call-template name="headscripts"/>
 
         <!-- Include static css -->
-        <link href="nv.d3.css" rel="stylesheet" type="text/css"/>
-        <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css"/>
+        <link href="css/nv.d3.css" rel="stylesheet" type="text/css"/>
+        <link rel="stylesheet" href="css/bootstrap.min.css"/>
 
         <!-- Include CDash's css -->
         <link rel="StyleSheet" type="text/css">

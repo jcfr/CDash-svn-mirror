@@ -22,8 +22,8 @@
           <xsl:attribute name="href"><xsl:value-of select="cdash/cssfile"/></xsl:attribute>
         </link>
 
-        <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css"/>
-        <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css"/>
+        <link rel="stylesheet" href="css/bootstrap.min.css"/>
+        <link rel="stylesheet" href="css/jquery-ui.css"/>
         <style>
           #sortable
             {
@@ -43,6 +43,7 @@
             font-size: 1.4em;
             border-style: solid;
             border-width: 2px;
+            cursor: move;
             }
           #instructions
             {
@@ -50,18 +51,18 @@
             }
         </style>
 
-        <script src="//code.jquery.com/jquery-1.10.2.js"/>
-        <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"/>
+        <script src="javascript/jquery-1.10.2.js"/>
+        <script src="javascript/jquery-ui-1.10.4.min.js"/>
         <script src="javascript/cdashSortable.js"></script>
         <script>
           $(function() {
             // setup sortable element
-            $( "#sortable" ).sortable();
+            $( "#sortable" ).sortable({ cursor: "move" });
             $( "#sortable" ).disableSelection();
 
             // save layout function
             $( "#saveLayout" ).click(function() {
-              var newLayout = JSON.stringify(get_sorted_elements("#sortable"));
+              var newLayout = JSON.stringify(getSortedElements("#sortable"));
               $("#loading").attr("src", "images/loading.gif");
               $.ajax(
                 {
