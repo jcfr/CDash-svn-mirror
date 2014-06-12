@@ -127,7 +127,7 @@ function gather_overview_data($start_date, $end_date, $group_id)
       $num_failing_tests += $build_row["testfailed"];
       }
 
-    if ($haveNonCore && $build_row["subprojectcore"] === 0)
+    if ($haveNonCore && $build_row["subprojectcore"] == 0)
       {
       $non_core_tested += $build_row["loctested"];
       $non_core_untested += $build_row["locuntested"];
@@ -149,17 +149,19 @@ function gather_overview_data($start_date, $end_date, $group_id)
     {
     if ($core_tested + $core_untested > 0)
       {
-      $return_values["core_coverage"] =
+      $return_values["core coverage"] =
         round($core_tested / ($core_tested + $core_untested) * 100, 2);
       }
     if ($non_core_tested + $non_core_untested > 0)
       {
+      file_put_contents("/tmp/zackdebug.txt", "Found a non-core value\n", FILE_APPEND);
       $return_values["non-core coverage"] =
         round($non_core_tested / ($non_core_tested + $non_core_untested) * 100, 2);
       }
     }
   else
     {
+    file_put_contents("/tmp/zackdebug.txt", "We don't have non-core\n", FILE_APPEND);
     if ($core_tested + $core_untested > 0)
       {
       $return_values["coverage"] =
@@ -215,11 +217,11 @@ $haveNonCore = false;
 $query = "SELECT * FROM subproject WHERE projectid='$projectid' AND core != 1";
 if (pdo_num_rows(pdo_query($query)) > 0)
   {
-  $haveNoneCore = true;
+  $haveNonCore = true;
   $coverage_group_names = array("core coverage", "non-core coverage");
   $coverage_thresholds =
     array("core coverage"     => $project_array["coveragethreshold"],
-          "non-core coverage" => $project_array["coveragethreshold"]);
+          "non-core coverage" => $project_array["coveragethreshold2"]);
   }
 else
   {
@@ -349,8 +351,8 @@ foreach($measurements as $measurement)
 foreach($coverage_group_names as $coverage_group_name)
   {
   $xml .= "<coverage>";
-  $xml .= add_XML_value("name", "$coverage_group_name");
-  $xml .= add_XML_value("nice_name", str_replace("_", " ", $coverage_group_name));
+  $xml .= add_XML_value("name", preg_replace("/[ -]/", "_", $coverage_group_name));
+  $xml .= add_XML_value("nice_name", "$coverage_group_name");
   $xml .= add_XML_value("low", $coverage_data[$coverage_group_name]["low"]);
   $xml .= add_XML_value("medium",
     $coverage_data[$coverage_group_name]["medium"]);

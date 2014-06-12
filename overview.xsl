@@ -111,7 +111,7 @@
               <td id="{name}_chart" class="col-md-1" style="height:50px;">
                 <svg></svg>
               </td>
-              <td id="{name}_bullet" class="col-md-1" colspan="1" style="height:50px;">
+              <td id="{name}_bullet" class="col-md-4" colspan="4" style="height:50px;">
                 <svg></svg>
               </td>
             </tr>
