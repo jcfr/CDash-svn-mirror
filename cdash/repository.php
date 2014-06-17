@@ -480,8 +480,20 @@ function get_gitorious_diff_url($projecturl, $directory, $file, $revision)
 /** Return the GitHub diff URL */
 function get_github_diff_url($projecturl, $directory, $file, $revision)
 {
-  // GitHub uses 'blob' or 'tree' (singular, no s)
-  return get_gitoriousish_diff_url($projecturl, $directory, $file, $revision, 'blob');
+  // This only works properly if the source dir's name matches the repo's name,
+  // ie it was not renamed as it was cloned.  A better solution would be for
+  // CTest to include the value of CTEST_SOURCE_DIRECTORY in Build.xml.
+  $repo_name = basename($projecturl);
+  $offset = stripos($directory, $repo_name);
+  if ( $offset !== false )
+    {
+    $offset += strlen($repo_name);
+    $directory = substr($directory, $offset);
+    }
+
+  $diff_url = "$projecturl/blob/$revision";
+  $diff_url .= "$directory/$file";
+  return make_cdash_url($diff_url);
 }
 
 /** Return the cgit diff URL */

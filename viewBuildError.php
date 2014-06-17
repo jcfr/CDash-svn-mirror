@@ -47,7 +47,14 @@ pdo_select_db("$CDASH_DB_NAME",$db);
 
 $start = microtime_float();
 
-$build_array = pdo_fetch_array(pdo_query("SELECT * FROM build WHERE id='$buildid'"));
+$build_query = "SELECT build.id, build.projectid, build.siteid, build.type,
+                       build.name, build.starttime, buildupdate.revision
+                FROM build
+                LEFT JOIN build2update ON (build2update.buildid = build.id)
+                LEFT JOIN buildupdate ON (buildupdate.id = build2update.updateid)
+                WHERE build.id = '$buildid'";
+$build_array = pdo_fetch_array(pdo_query($build_query));
+
 if(empty($build_array))
   {
   echo "This build does not exist. Maybe it has been deleted.";
@@ -67,12 +74,11 @@ checkUserPolicy(@$_SESSION['cdash']['loginid'],$project_array["id"]);
 $xml = begin_XML_for_XSLT();
 $xml .= "<title>CDash : ".$projectname."</title>";
 
-$build = pdo_query("SELECT * FROM build WHERE id='$buildid'");
-$build_array = pdo_fetch_array($build);
 $siteid = $build_array["siteid"];
 $buildtype = $build_array["type"];
 $buildname = $build_array["name"];
 $starttime = $build_array["starttime"];
+$revision = $build_array["revision"];
 
 $date = get_dashboard_date_from_build_starttime($build_array["starttime"],$project_array["nightlytime"]);
 $xml .= get_cdash_dashboard_xml_by_name($projectname,$date);
@@ -162,7 +168,7 @@ $xml .= "</menu>";
       $projectCvsUrl = $project_array["cvsurl"];
       $file = basename($error_array["sourcefile"]);
       $directory = dirname($error_array["sourcefile"]);
-      $cvsurl = get_diff_url($projectid,$projectCvsUrl,$directory,$file);
+      $cvsurl = get_diff_url($projectid,$projectCvsUrl,$directory,$file,$revision);
 
 
       $lxml .= add_XML_value("cvsurl",$cvsurl);
@@ -238,7 +244,7 @@ $xml .= "</menu>";
         $projectCvsUrl = $project_array["cvsurl"];
         $file = basename($error_array["sourcefile"]);
         $directory = dirname($error_array["sourcefile"]);
-        $cvsurl = get_diff_url($projectid,$projectCvsUrl,$directory,$file);
+        $cvsurl = get_diff_url($projectid,$projectCvsUrl,$directory,$file,$revision);
         $lxml .= add_XML_value("cvsurl",$cvsurl);
         }
       $errorid++;
@@ -274,7 +280,7 @@ $xml .= "</menu>";
       $projectCvsUrl = $project_array["cvsurl"];
       $file = basename($error_array["sourcefile"]);
       $directory = dirname($error_array["sourcefile"]);
-      $cvsurl = get_diff_url($projectid,$projectCvsUrl,$directory,$file);
+      $cvsurl = get_diff_url($projectid,$projectCvsUrl,$directory,$file,$revision);
 
       $lxml .= add_XML_value("cvsurl",$cvsurl);
       $errorid++;
@@ -342,7 +348,7 @@ $xml .= "</menu>";
         $projectCvsUrl = $project_array["cvsurl"];
         $file = basename($error_array["sourcefile"]);
         $directory = dirname($error_array["sourcefile"]);
-        $cvsurl = get_diff_url($projectid,$projectCvsUrl,$directory,$file);
+        $cvsurl = get_diff_url($projectid,$projectCvsUrl,$directory,$file,$revision);
         $lxml .= add_XML_value("cvsurl",$cvsurl);
         }
       $errorid++;
