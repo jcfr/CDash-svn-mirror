@@ -344,8 +344,14 @@ $xml .= "</menu>";
           }
         }
 
-      $lxml .= add_XML_value("stderror", $stderror);
-      $lxml .= add_XML_value("stdoutput", $stdoutput);
+      if ($stderror)
+        {
+        $lxml .= add_XML_value("stderror", $stderror);
+        }
+      if ($stdoutput)
+        {
+        $lxml .= add_XML_value("stdoutput", $stdoutput);
+        }
       $lxml .= add_XML_value("exitcondition",$error_array["exitcondition"]);
       $errorid++;
       $lxml .= "</error>";
