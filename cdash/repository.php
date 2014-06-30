@@ -516,6 +516,11 @@ function github_get_source_dir($projecturl, $file_path)
 /** Return the GitHub diff URL */
 function get_github_diff_url($projecturl, $directory, $file, $revision)
 {
+  if (empty($directory) && empty($file) && empty($revision))
+    {
+    return;
+    }
+
   // get the source dir
   $source_dir = github_get_source_dir($projecturl, $directory);
 
