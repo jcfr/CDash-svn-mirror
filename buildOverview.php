@@ -2,10 +2,10 @@
 /*=========================================================================
 
   Program:   CDash - Cross-Platform Dashboard System
-  Module:    $Id: buildOverview.php 3335 2013-07-17 21:38:13Z zack.galbreath $
+  Module:    $Id: buildOverview.php 3524 2014-06-15 10:58:54Z jjomier $
   Language:  PHP
-  Date:      $Date: 2013-07-17 21:38:13 +0000 (Wed, 17 Jul 2013) $
-  Version:   $Revision: 3335 $
+  Date:      $Date: 2014-06-15 10:58:54 +0000 (Sun, 15 Jun 2014) $
+  Version:   $Revision: 3524 $
 
   Copyright (c) 2002 Kitware, Inc.  All rights reserved.
   See Copyright.txt or http://www.cmake.org/HTML/Copyright.html for details.
@@ -152,13 +152,12 @@ while($build_array = pdo_fetch_array($builds))
     $xml .= "<warning>";
     }
   $xml .= "<line>".$build_array["sourceline"]."</line>";
-  $text = htmlentities($build_array["text"]);
-  $textarray = explode("\n",$text);
+  $textarray = explode("\n",$build_array["text"]);
   foreach($textarray as $text)
     {
     if(strlen($text)>0)
       {
-      $xml .= "<text>".$text."</text>";
+      $xml .= add_XML_value("text",$text);
       }
     }
   $xml .= "<sitename>".$build_array["name"]."</sitename>";  

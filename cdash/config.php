@@ -2,10 +2,10 @@
 /*=========================================================================
 
   Program:   CDash - Cross-Platform Dashboard System
-  Module:    $Id: config.php 3461 2014-04-26 12:56:48Z jjomier $
+  Module:    $Id: config.php 3538 2014-07-07 18:29:52Z zack.galbreath $
   Language:  PHP
-  Date:      $Date: 2014-04-26 12:56:48 +0000 (Sat, 26 Apr 2014) $
-  Version:   $Revision: 3461 $
+  Date:      $Date: 2014-07-07 18:29:52 +0000 (Mon, 07 Jul 2014) $
+  Version:   $Revision: 3538 $
 
   Copyright (c) 2002 Kitware, Inc.  All rights reserved.
   See Copyright.txt or http://www.cmake.org/HTML/Copyright.html for details.
@@ -148,6 +148,10 @@ $CDASH_SUBMISSION_PROCESSING_MAX_ATTEMPTS = '5';
 $CDASH_MAX_UPLOAD_QUOTA = '10';
 // Maximum size of large text fields, in php-strlen units, 0 for unlimited
 $CDASH_LARGE_TEXT_LIMIT = '0';
+
+// for Google oauth2 support
+$GOOGLE_CLIENT_ID = '';
+$GOOGLE_CLIENT_SECRET = '';
 
 /** DO NOT EDIT AFTER THIS LINE */
 $localConfig = dirname(__FILE__).'/config.local.php';

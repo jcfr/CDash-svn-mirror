@@ -2,10 +2,10 @@
 /*=========================================================================
 
   Program:   CDash - Cross-Platform Dashboard System
-  Module:    $Id: viewTest.php 3467 2014-04-30 05:58:39Z jjomier $
+  Module:    $Id: viewTest.php 3525 2014-06-16 13:08:53Z jjomier $
   Language:  PHP
-  Date:      $Date: 2014-04-30 05:58:39 +0000 (Wed, 30 Apr 2014) $
-  Version:   $Revision: 3467 $
+  Date:      $Date: 2014-06-16 13:08:53 +0000 (Mon, 16 Jun 2014) $
+  Version:   $Revision: 3525 $
 
   Copyright (c) 2002 Kitware, Inc.  All rights reserved.
   See Copyright.txt or http://www.cmake.org/HTML/Copyright.html for details.
@@ -278,7 +278,7 @@ $getalltestlistsql="SELECT test.id
   FROM test
   JOIN build2test ON (build2test.testid = test.id)
   JOIN build ON (build.id = build2test.buildid)
-  WHERE build.id='$buildid'
+  WHERE build.id='$buildid' $onlydelta_extra
   $extras
   ORDER BY test.id
 ";
