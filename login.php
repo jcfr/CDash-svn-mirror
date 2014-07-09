@@ -2,10 +2,10 @@
 /*=========================================================================
 
   Program:   CDash - Cross-Platform Dashboard System
-  Module:    $Id: login.php 3538 2014-07-07 18:29:52Z zack.galbreath $
+  Module:    $Id: login.php 3539 2014-07-09 19:39:02Z zack.galbreath $
   Language:  PHP
-  Date:      $Date: 2014-07-07 18:29:52 +0000 (Mon, 07 Jul 2014) $
-  Version:   $Revision: 3538 $
+  Date:      $Date: 2014-07-09 19:39:02 +0000 (Wed, 09 Jul 2014) $
+  Version:   $Revision: 3539 $
 
   Copyright (c) 2002 Kitware, Inc.  All rights reserved.
   See Copyright.txt or http://www.cmake.org/HTML/Copyright.html for details.
@@ -321,7 +321,7 @@ function auth($SessionCachePolicy='private_no_expire')
 
     // Remove the cookie if we have one
     $cookienames = array("CDash", str_replace('.','_',"CDash-".$_SERVER['SERVER_NAME'])); // php doesn't like dot in cookie names
-    foreach ($cookiesnames as $cookiename)
+    foreach ($cookienames as $cookiename)
       {
       if(isset($_COOKIE[$cookiename]))
         {
@@ -482,7 +482,10 @@ if(!auth(@$SessionCachePolicy) && !@$noforcelogin):                 // authentic
   session_cache_limiter($SessionCachePolicy);
   session_set_cookie_params($CDASH_COOKIE_EXPIRATION_TIME);
   @ini_set('session.gc_maxlifetime', $CDASH_COOKIE_EXPIRATION_TIME+600);
-  session_start();
+  if(!isset($_SESSION))
+    {
+    session_start();
+    }
   $sessionArray = array ("state" => md5(rand()));
   $_SESSION['cdash'] = $sessionArray;
 
