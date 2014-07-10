@@ -2,10 +2,10 @@
 /*=========================================================================
 
   Program:   CDash - Cross-Platform Dashboard System
-  Module:    $Id: index.php 3536 2014-06-30 13:50:05Z zack.galbreath $
+  Module:    $Id: index.php 3540 2014-07-10 17:12:43Z zack.galbreath $
   Language:  PHP
-  Date:      $Date: 2014-06-30 13:50:05 +0000 (Mon, 30 Jun 2014) $
-  Version:   $Revision: 3536 $
+  Date:      $Date: 2014-07-10 17:12:43 +0000 (Thu, 10 Jul 2014) $
+  Version:   $Revision: 3540 $
 
   Copyright (c) 2002 Kitware, Inc.  All rights reserved.
   See Copyright.txt or http://www.cmake.org/HTML/Copyright.html for details.
@@ -68,7 +68,7 @@ function generate_index_table()
 
   // User
   $userid = 0;
-  if(isset($_SESSION['cdash']))
+  if(isset($_SESSION['cdash']) && isset($_SESSION['cdash']['loginid']))
     {
     $xml .= "<user>";
     $userid = $_SESSION['cdash']['loginid'];

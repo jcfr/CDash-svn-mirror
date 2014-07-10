@@ -2,10 +2,10 @@
 /*=========================================================================
 
   Program:   CDash - Cross-Platform Dashboard System
-  Module:    $Id: login.php 3539 2014-07-09 19:39:02Z zack.galbreath $
+  Module:    $Id: login.php 3540 2014-07-10 17:12:43Z zack.galbreath $
   Language:  PHP
-  Date:      $Date: 2014-07-09 19:39:02 +0000 (Wed, 09 Jul 2014) $
-  Version:   $Revision: 3539 $
+  Date:      $Date: 2014-07-10 17:12:43 +0000 (Thu, 10 Jul 2014) $
+  Version:   $Revision: 3540 $
 
   Copyright (c) 2002 Kitware, Inc.  All rights reserved.
   See Copyright.txt or http://www.cmake.org/HTML/Copyright.html for details.
@@ -474,27 +474,30 @@ $uri = basename($_SERVER['PHP_SELF']);
 $stamp = md5(srand(5));
 $session_OK = 0;
 
-if(!auth(@$SessionCachePolicy) && !@$noforcelogin):                 // authentication failed
+if(!auth(@$SessionCachePolicy) && !@$noforcelogin)                  // authentication failed
+  {
 
   // Create a session with a random "state" value.
   // This is used by Google OAuth2 to prevent forged logins.
+  if (session_id() != '')
+    {
+    session_destroy();
+    }
   session_name("CDash");
-  session_cache_limiter($SessionCachePolicy);
+  session_cache_limiter(@$SessionCachePolicy);
   session_set_cookie_params($CDASH_COOKIE_EXPIRATION_TIME);
   @ini_set('session.gc_maxlifetime', $CDASH_COOKIE_EXPIRATION_TIME+600);
-  if(!isset($_SESSION))
-    {
-    session_start();
-    }
+  session_start();
   $sessionArray = array ("state" => md5(rand()));
   $_SESSION['cdash'] = $sessionArray;
-
   LoginForm($loginerror); // display login form
   $session_OK=0;
-else:                        // authentication was successful
+  }
+else                         // authentication was successful
+  {
   $tmp = session_id();       // session is already started
   $session_OK = 1;
-endif;
+  }
 
 if($CDASH_USER_CREATE_PROJECTS && isset($_SESSION['cdash']))
   {
