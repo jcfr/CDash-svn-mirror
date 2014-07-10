@@ -509,6 +509,10 @@ function github_get_source_dir($projecturl, $file_path)
 {
   $repo_name = basename($projecturl);
   $offset = stripos($file_path, $repo_name);
+  if ($offset === false)
+    {
+    return "/.../";
+    }
   $offset += strlen($repo_name);
   return substr($file_path, 0, $offset);
 }
@@ -516,6 +520,16 @@ function github_get_source_dir($projecturl, $file_path)
 /** Return the GitHub diff URL */
 function get_github_diff_url($projecturl, $directory, $file, $revision)
 {
+  if (empty($directory) && empty($file) && empty($revision))
+    {
+    return;
+    }
+
+  // set a reasonable default revision if none was specified
+  if (empty($revision))
+    {
+    $revision = "master";
+    }
   // get the source dir
   $source_dir = github_get_source_dir($projecturl, $directory);
 
@@ -523,8 +537,9 @@ function get_github_diff_url($projecturl, $directory, $file, $revision)
   if (substr($directory, 0, strlen($source_dir)) == $source_dir) {
       $directory = substr($directory, strlen($source_dir));
   }
+  $directory = trim($directory, "/");
 
-  $diff_url = "$projecturl/blob/$revision";
+  $diff_url = "$projecturl/blob/$revision/";
   $diff_url .= "$directory/$file";
   return make_cdash_url($diff_url);
 }
@@ -737,7 +752,12 @@ function linkify_compiler_output($projecturl, $source_dir, $revision, $compiler_
 
   // remove base dir from other (binary) paths
   $base_dir = dirname($source_dir) . "/";
-  return str_replace($base_dir, "", $compiler_output);
+  if ($base_dir != "//")
+    {
+    return str_replace($base_dir, "", $compiler_output);
+    }
+
+  return $compiler_output;
 }
 
 ?>
