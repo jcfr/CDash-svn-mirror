@@ -271,18 +271,41 @@ $xml .= "</menu>";
       $lxml .= add_XML_value("id",$errorid);
       $lxml .= add_XML_value("new",$error_array["newstatus"]);
       $lxml .= add_XML_value("logline",$error_array["logline"]);
-      $lxml .= add_XML_value("text",$error_array["text"]);
-      $lxml .= add_XML_value("sourcefile",$error_array["sourcefile"]);
-      $lxml .= add_XML_value("sourceline",$error_array["sourceline"]);
-      $lxml .= add_XML_value("precontext",$error_array["precontext"]);
-      $lxml .= add_XML_value("postcontext",$error_array["postcontext"]);
 
       $projectCvsUrl = $project_array["cvsurl"];
-      $file = basename($error_array["sourcefile"]);
-      $directory = dirname($error_array["sourcefile"]);
+      $text = $error_array["text"];
+
+      // Detect if the source directory has already been replaced by CTest with /.../
+      $pattern = "&/.../(.*?)/&";
+      $matches = array();
+      preg_match($pattern, $text, $matches);
+      if (sizeof($matches) > 1)
+        {
+        $file = $error_array["sourcefile"];
+        $directory = $matches[1];
+        }
+      else
+        {
+        $file = basename($error_array["sourcefile"]);
+        $directory = dirname($error_array["sourcefile"]);
+        }
+
       $cvsurl = get_diff_url($projectid,$projectCvsUrl,$directory,$file,$revision);
 
       $lxml .= add_XML_value("cvsurl",$cvsurl);
+
+      // when building without launchers, CTest truncates the source dir to /.../
+      // use this pattern to linkify compiler output.
+      $precontext = linkify_compiler_output($projectCvsUrl, "/\.\.\.", $revision, $error_array["precontext"]);
+      $text = linkify_compiler_output($projectCvsUrl, "/\.\.\.", $revision, $error_array["text"]);
+      $postcontext = linkify_compiler_output($projectCvsUrl, "/\.\.\.", $revision, $error_array["postcontext"]);
+
+      $lxml .= add_XML_value("precontext", $precontext);
+      $lxml .= add_XML_value("text", $text);
+      $lxml .= add_XML_value("postcontext", $postcontext);
+      $lxml .= add_XML_value("sourcefile",$error_array["sourcefile"]);
+      $lxml .= add_XML_value("sourceline",$error_array["sourceline"]);
+
       $errorid++;
       $lxml .= "</error>";
 
