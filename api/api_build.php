@@ -2,10 +2,10 @@
 /*=========================================================================
 
   Program:   CDash - Cross-Platform Dashboard System
-  Module:    $Id: api_build.php 3421 2014-01-03 08:11:08Z jjomier $
+  Module:    $Id: api_build.php 3544 2014-07-15 16:31:11Z jjomier $
   Language:  PHP
-  Date:      $Date: 2014-01-03 08:11:08 +0000 (Fri, 03 Jan 2014) $
-  Version:   $Revision: 3421 $
+  Date:      $Date: 2014-07-15 16:31:11 +0000 (Tue, 15 Jul 2014) $
+  Version:   $Revision: 3544 $
 
   Copyright (c) 2002 Kitware, Inc.  All rights reserved.
   See Copyright.txt or http://www.cmake.org/HTML/Copyright.html for details.
@@ -106,7 +106,107 @@ class BuildAPI extends CDashAPI
     return $builds;
     } // end function ListDefects
 
+  /** Return the defects: builderrors, buildwarnings, testnotrun, testfailed. */
+  private function RevisionStatus()
+    {
+    include_once('../cdash/common.php');
+    include("../cdash/config.php");
 
+    if(!isset($this->Parameters['project']))
+      {
+      echo "Project not set";
+      return;
+      }
+
+    if(!isset($this->Parameters['revision']))
+      {
+      echo "revision not set";
+      return;
+      }
+ 
+    $revision = trim($this->Parameters['revision']);
+    
+    $projectid = get_project_id($this->Parameters['project']);
+    if(!is_numeric($projectid) || $projectid <= 0)
+      {
+      echo "Project not found";
+      return;
+      }
+
+    $builds = array();
+
+    // Finds all the buildid 
+    $query = pdo_query("SELECT b.name,b.id, b.starttime,b.endtime,b.submittime,b.builderrors,b.buildwarnings,b.testnotrun,b.testfailed,b.testpassed
+                        FROM build AS b, buildupdate AS bu, build2update AS b2u WHERE
+                        b2u.buildid=b.id AND b2u.updateid=bu.id AND 
+                        bu.revision='".$revision."' AND b.projectid='".$projectid."'   "); // limit the request
+
+    echo pdo_error();
+      
+    while($query_array = pdo_fetch_array($query))
+      {
+      $build['id'] = $query_array['id'];
+      $build['name'] = $query_array['name'];
+      $build['starttime'] = $query_array['starttime'];
+      $build['endtime'] = $query_array['endtime'];
+      $build['submittime'] = $query_array['submittime'];
+      
+      // Finds the osname
+      $infoquery = pdo_query("SELECT osname FROM buildinformation WHERE buildid='".$build['id']."'");  
+      if(pdo_num_rows($infoquery)>0)
+        {
+        $query_infoarray = pdo_fetch_array($infoquery);
+        $build['os'] = $query_infoarray['osname'];
+        }
+      
+      // Finds the configuration errors
+      $configquery = pdo_query("SELECT count(*) AS c FROM configureerror WHERE buildid='".$build['id']."' AND type='0'");  
+      $query_configarray = pdo_fetch_array($configquery);
+      $build['configureerrors'] = $query_configarray['c'];
+      
+      $configquery = pdo_query("SELECT count(*) AS c FROM configureerror WHERE buildid='".$build['id']."' AND type='1'");  
+      $query_configarray = pdo_fetch_array($configquery);
+      $build['configurewarnings'] = $query_configarray['c'];
+      
+      $coveragequery = pdo_query("SELECT loctested,locuntested FROM coveragesummary WHERE buildid='".$build['id']."'");  
+      if($coveragequery)
+        {
+        $coveragequery_configarray = pdo_fetch_array($coveragequery);
+        $build['loctested'] = $coveragequery_configarray['loctested'];
+        $build['locuntested'] = $coveragequery_configarray['locuntested'];
+        }
+
+      $build['builderrors'] = 0;
+      if($query_array['builderrors']>=0)
+        {
+        $build['builderrors'] = $query_array['builderrors'];
+        }
+      $build['buildwarnings'] = 0;
+      if($query_array['buildwarnings']>=0)
+        {
+        $build['buildwarnings'] = $query_array['buildwarnings'];
+        }
+      $build['testnotrun'] = 0;
+      if($query_array['testnotrun']>=0)
+        {
+        $build['testnotrun'] = $query_array['testnotrun'];
+        }
+      $build['testpassed'] = 0;
+      if($query_array['testpassed']>=0)
+        {
+        $build['testpassed'] = $query_array['testpassed'];
+        }
+      $build['testfailed'] = 0;
+      if($query_array['testfailed']>=0)
+        {
+        $build['testfailed'] = $query_array['testfailed'];
+        }
+      $builds[] = $build;
+      }
+    return $builds;
+    } // end function ListDefects
+    
+    
   /** Return the number of defects per number of checkins */
   private function ListCheckinsDefects()
     {
@@ -496,6 +596,7 @@ class BuildAPI extends CDashAPI
     switch($this->Parameters['task'])
       {
       case 'defects': return $this->ListDefects();
+      case 'revisionstatus': return $this->RevisionStatus();
       case 'checkinsdefects': return $this->ListCheckinsDefects();
       case 'sitetestfailures': return $this->ListSiteTestFailure();
       case 'schedule': return $this->ScheduleBuild();

@@ -2,10 +2,10 @@
 /*=========================================================================
 
   Program:   CDash - Cross-Platform Dashboard System
-  Module:    $Id: common.php 3468 2014-04-30 09:47:28Z jjomier $
+  Module:    $Id: common.php 3541 2014-07-15 09:35:37Z jjomier $
   Language:  PHP
-  Date:      $Date: 2014-04-30 09:47:28 +0000 (Wed, 30 Apr 2014) $
-  Version:   $Revision: 3468 $
+  Date:      $Date: 2014-07-15 09:35:37 +0000 (Tue, 15 Jul 2014) $
+  Version:   $Revision: 3541 $
 
   Copyright (c) 2002 Kitware, Inc.  All rights reserved.
   See Copyright.txt or http://www.cmake.org/HTML/Copyright.html for details.
@@ -609,7 +609,6 @@ function get_server_URI($localhost=false)
   include("cdash/config.php");
 
   // If the base URL is set and no localhost we just return the base URL
-  // This is the case when
   if(!$localhost && $CDASH_BASE_URL != '')
     {
     return $CDASH_BASE_URL;

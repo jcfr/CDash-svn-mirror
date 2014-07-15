@@ -2,10 +2,10 @@
 /*=========================================================================
 
   Program:   CDash - Cross-Platform Dashboard System
-  Module:    $Id: index.php 3540 2014-07-10 17:12:43Z zack.galbreath $
+  Module:    $Id: index.php 3543 2014-07-15 15:47:48Z jjomier $
   Language:  PHP
-  Date:      $Date: 2014-07-10 17:12:43 +0000 (Thu, 10 Jul 2014) $
-  Version:   $Revision: 3540 $
+  Date:      $Date: 2014-07-15 15:47:48 +0000 (Tue, 15 Jul 2014) $
+  Version:   $Revision: 3543 $
 
   Copyright (c) 2002 Kitware, Inc.  All rights reserved.
   See Copyright.txt or http://www.cmake.org/HTML/Copyright.html for details.
@@ -1205,7 +1205,9 @@ function generate_main_dashboard_XML($project_instance, $date)
       {
       $buildplatform='mac';
       }
-    else if(strtolower(substr($build_array["osname"],0,5)) == 'linux')
+    else if(strtolower(substr($build_array["osname"],0,5)) == 'linux'
+            || strtolower(substr($build_array["osname"],0,3)) == 'aix'
+            )
       {
       $buildplatform='linux';
       }
