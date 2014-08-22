@@ -60,26 +60,47 @@ $xml .= add_XML_value("current", "overview.php?project=$projectname");
 $xml .= add_XML_value("next", "overview.phpv?project=$projectname&date=$nextdate");
 $xml .= "</menu>";
 
-
 // configure/build/test data that we care about.
 $build_measurements = array("configure_warnings", "configure_errors",
-                      "build_warnings", "build_errors", "failing_tests",
-                      "style_errors");
+                      "build_warnings", "build_errors", "failing_tests");
 
-// get the build groups that are included in this project's overview
+// for static analysis, we only care about errors & warnings.
+$static_measurements = array("errors", "warnings");
+
+// get the build groups that are included in this project's overview,
+// split up by type (currently only static analysis and general builds).
 $query =
-  "SELECT bg.id, bg.name FROM overviewbuildgroups AS obg
+  "SELECT bg.id, bg.name, obg.type FROM overview_components AS obg
    LEFT JOIN buildgroup AS bg ON (obg.buildgroupid = bg.id)
    WHERE obg.projectid = '$projectid' ORDER BY obg.position";
-$build_group_rows = pdo_query($query);
+$group_rows = pdo_query($query);
 add_last_sql_error("overview", $projectid);
+
 $build_groups = array();
-while($build_group_row = pdo_fetch_array($build_group_rows))
+$static_groups = array();
+
+while($group_row = pdo_fetch_array($group_rows))
   {
-  $build_groups[] = array('id' => $build_group_row["id"],
-                          'name' => $build_group_row["name"]);
+  if ($group_row["type"] == "build")
+    {
+    $build_groups[] = array('id' => $group_row["id"],
+                            'name' => $group_row["name"]);
+    }
+  else if ($group_row["type"] == "static")
+    {
+    $static_groups[] = array('id' => $group_row["id"],
+                             'name' => $group_row["name"]);
+    }
   }
 
+// initialize our storage data structures here.
+//
+// overview_data generally contains all the relevant numbers
+// pertaining to the most recent day's builds.
+//
+// linechart_data, on the other hand, contains data points going
+// back two weeks.  As the name suggests, this data is used
+// as the input to the line charts on this page.
 $overview_data = array();
 foreach($build_measurements as $measurement)
   {
@@ -91,7 +112,8 @@ foreach($build_measurements as $measurement)
     }
   }
 
-// This logic will need to change if we abstract way core vs. non-core
+// How we handle coverage_data will need to change if we abstract way
+// core vs. non-core into arbitrary subproject groups.
 $coverage_data = array();
 
 // Get core & non-core coverage thresholds
@@ -120,6 +142,7 @@ else
   }
 add_last_sql_error("overview :: detect-non-core", $projectid);
 
+// initialize storage for coverage data
 foreach($build_groups as $build_group)
   {
     $overview_data[$build_group["name"]] = array();
@@ -137,7 +160,6 @@ foreach($build_groups as $build_group)
     }
   }
 
-
 // used to keep track of current dynamic analysis defects.
 $dynamic_analysis_data = array();
 
@@ -145,7 +167,7 @@ $dynamic_analysis_data = array();
 // that are being performed on our build groups of interest.
 $dynamic_analysis_types = array();
 
-// gather up the relevant stats
+// gather up the relevant stats for the general build groups
 foreach($build_groups as $build_group)
   {
   $beginning_timestamp = $currentstarttime;
@@ -153,24 +175,12 @@ foreach($build_groups as $build_group)
   $beginning_UTCDate = gmdate(FMT_DATETIME,$beginning_timestamp);
   $end_UTCDate = gmdate(FMT_DATETIME,$end_timestamp);
 
-  $without_style_filter = "AND b.name NOT LIKE '%.style'";
   $data = gather_overview_data($beginning_UTCDate, $end_UTCDate,
-                               $build_group["id"], $without_style_filter);
-
-  $with_style_filter = "AND b.name LIKE '%.style'";
-  $style_data = gather_overview_data($beginning_UTCDate, $end_UTCDate,
-                                     $build_group["id"], $with_style_filter);
+                               $build_group["id"]);
 
   foreach($build_measurements as $measurement)
     {
-    if ($measurement === 'style_errors')
-      {
-      $overview_data[$measurement][$build_group["name"]] = $style_data['build_errors'];
-      }
-    else
-      {
-      $overview_data[$measurement][$build_group["name"]] = $data[$measurement];
-      }
+    $overview_data[$measurement][$build_group["name"]] = $data[$measurement];
     }
 
   foreach($coverage_group_names as $coverage_group_name)
@@ -209,25 +219,15 @@ foreach($build_groups as $build_group)
     $chart_end_timestamp = $end_timestamp + ($i * 3600 * 24);
     $chart_beginning_UTCDate = gmdate(FMT_DATETIME, $chart_beginning_timestamp);
     $chart_end_UTCDate = gmdate(FMT_DATETIME, $chart_end_timestamp);
-    // to be passed on to javascript chart renderes
+    // to be passed on to javascript chart renderers
     $chart_data_date = gmdate("M d Y H:i:s", $chart_end_timestamp);
 
     $data = gather_overview_data($chart_beginning_UTCDate, $chart_end_UTCDate,
-                                 $build_group["id"], $without_style_filter);
-    $style_data = gather_overview_data($chart_beginning_UTCDate, $chart_end_UTCDate,
-                                 $build_group["id"], $with_style_filter);
+                                 $build_group["id"]);
     foreach($build_measurements as $measurement)
       {
-      if ($measurement === 'style_errors')
-        {
-        $linechart_data[$measurement][$build_group["name"]][] =
-          array($chart_data_date, $style_data['build_errors']);
-        }
-      else
-        {
-        $linechart_data[$measurement][$build_group["name"]][] =
-          array($chart_data_date, $data[$measurement]);
-        }
+      $linechart_data[$measurement][$build_group["name"]][] =
+        array($chart_data_date, $data[$measurement]);
       }
 
     // dynamic analysis
@@ -269,7 +269,7 @@ foreach($build_groups as $build_group)
     }
   }
 
-// compute previous coverage value
+// compute previous coverage value (used by bullet charts)
 foreach($build_groups as $build_group)
   {
   foreach($coverage_group_names as $coverage_group_name)
@@ -282,12 +282,12 @@ foreach($build_groups as $build_group)
     if ($num_points > 1)
       {
       $coverage_data[$build_group["name"]][$coverage_group_name]["previous"] =
-        $linechart_data[$build_group["name"]][$coverage_group_name][$num_points - 2]['y'];
+        $linechart_data[$build_group["name"]][$coverage_group_name][$num_points - 2][1];
       }
     else
       {
       $prev_point = end($linechart_data[$build_group["name"]][$coverage_group_name]);
-      $coverage_data[$build_group["name"]][$coverage_group_name]["previous"] = $prev_point['y'];
+      $coverage_data[$build_group["name"]][$coverage_group_name]["previous"] = $prev_point[1];
       }
     if (!isset($coverage_data[$build_group["name"]][$coverage_group_name]["previous"]))
       {
@@ -297,7 +297,44 @@ foreach($build_groups as $build_group)
     }
   }
 
+// gather up data for static analysis
+foreach($static_groups as $static_group)
+  {
+  $beginning_timestamp = $currentstarttime;
+  $end_timestamp = $currentstarttime + 3600 * 24;
+  $beginning_UTCDate = gmdate(FMT_DATETIME,$beginning_timestamp);
+  $end_UTCDate = gmdate(FMT_DATETIME,$end_timestamp);
+
+  $data = gather_static_data($beginning_UTCDate, $end_UTCDate,
+                               $static_group["id"]);
+
+  foreach($static_measurements as $measurement)
+    {
+    $overview_data[$measurement][$static_group["name"]] = $data[$measurement];
+    }
+
+  // for charting purposes, we also pull data from the past two weeks
+  for($i = -13; $i < 1; $i++)
+    {
+    $chart_beginning_timestamp = $beginning_timestamp + ($i * 3600 * 24);
+    $chart_end_timestamp = $end_timestamp + ($i * 3600 * 24);
+    $chart_beginning_UTCDate = gmdate(FMT_DATETIME, $chart_beginning_timestamp);
+    $chart_end_UTCDate = gmdate(FMT_DATETIME, $chart_end_timestamp);
+    // to be passed on to javascript chart renderers
+    $chart_data_date = gmdate("M d Y H:i:s", $chart_end_timestamp);
+
+    $data = gather_static_data($chart_beginning_UTCDate, $chart_end_UTCDate,
+                                 $static_group["id"]);
+    foreach($static_measurements as $measurement)
+      {
+      $linechart_data[$measurement][$static_group["name"]][] =
+        array($chart_data_date, $data[$measurement]);
+      }
+    }
+  }
+
 // now that the data has been collected, we can generate the .xml data
+// start with general build groups.
 foreach($build_groups as $build_group)
   {
   $xml .= "<group>";
@@ -322,6 +359,7 @@ foreach($build_measurements as $measurement)
   $xml .= "</measurement>";
   }
 
+// coverage
 foreach($build_groups as $build_group)
   {
   foreach($coverage_group_names as $coverage_group_name)
@@ -351,6 +389,7 @@ foreach($build_groups as $build_group)
     }
   }
 
+// dynamic analysis
 foreach($dynamic_analysis_types as $checker)
   {
   $xml .= "<dynamicanalysis>";
@@ -369,11 +408,53 @@ foreach($dynamic_analysis_types as $checker)
     $xml .= add_XML_value("group_name_clean", str_replace(" ", "_", $build_group["name"]));
     $xml .= add_XML_value("chart",
       json_encode($linechart_data[$build_group["name"]][$checker]));
-    $xml .= add_XML_value("value",
-        $dynamic_analysis_data[$checker][$build_group["name"]]);
+    if (array_key_exists($checker, $dynamic_analysis_data))
+      {
+      $xml .= add_XML_value("value",
+          $dynamic_analysis_data[$checker][$build_group["name"]]);
+      }
+    else
+      {
+      $xml .= add_XML_value("value", "N/A");
+      }
     $xml .= "</group>";
     }
   $xml .= "</dynamicanalysis>";
+  }
+
+// static analysis
+foreach($static_groups as $static_group)
+  {
+  // skip this group if no data was found for it.
+  $found = false;
+  foreach($static_measurements as $measurement)
+    {
+    if (!empty($linechart_data[$measurement][$static_group["name"]]))
+      {
+      $found = true;
+      break;
+      }
+    }
+  if (!$found)
+    {
+    continue;
+    }
+
+  $xml .= "<staticanalysis>";
+  $xml .= add_XML_value("group_name", $static_group["name"]);
+  $xml .= add_XML_value("group_name_clean", str_replace(" ", "_", $static_group["name"]));
+  foreach($static_measurements as $measurement)
+    {
+    $xml .= "<measurement>";
+    $xml .= add_XML_value("name", $measurement);
+    $xml .= add_XML_value("nice_name", str_replace("_", " ", $measurement));
+    $xml .= add_XML_value("value",
+      $overview_data[$measurement][$static_group["name"]]);
+    $xml .= add_XML_value("chart",
+      json_encode($linechart_data[$measurement][$static_group["name"]]));
+    $xml .= "</measurement>";
+    }
+  $xml .= "</staticanalysis>";
   }
 
 $xml .= "</cdash>";
@@ -385,8 +466,8 @@ if(!isset($NoXSLGenerate))
   }
 
 
-// function to query database for relevant info
-function gather_overview_data($start_date, $end_date, $group_id, $filter)
+// function to query database for general build info
+function gather_overview_data($start_date, $end_date, $group_id)
 {
   global $projectid;
   global $haveNonCore;
@@ -422,11 +503,6 @@ function gather_overview_data($start_date, $end_date, $group_id, $filter)
                    AND b.starttime < '$end_date'
                    AND b.starttime >= '$start_date'
                    AND b2g.groupid = '$group_id'";
-
-  if (!empty($filter))
-    {
-    $builds_query .= $filter;
-    }
 
   $builds_array = pdo_query($builds_query);
   add_last_sql_error("gather_overview_data", $group_id);
@@ -499,45 +575,46 @@ function gather_overview_data($start_date, $end_date, $group_id, $filter)
     }
 
   // handle dynamic analysis defects separately
-  //
-  // temporarily disable for style builds:
-  if ($filter != "AND b.name LIKE '%.style'")
+  $defects_query = "SELECT da.checker AS checker,
+                    sum(dd.value) AS defects
+                    FROM build AS b
+                    LEFT JOIN build2group AS b2g ON (b2g.buildid=b.id)
+                    LEFT JOIN dynamicanalysis as da ON (da.buildid = b.id)
+                    LEFT JOIN dynamicanalysisdefect as dd ON (dd.dynamicanalysisid=da.id)
+                    WHERE b.projectid = '$projectid'
+                    AND b.starttime < '$end_date'
+                    AND b.starttime >= '$start_date'
+                    AND b2g.groupid = '$group_id'
+                    AND checker IS NOT NULL
+                    GROUP BY checker";
+
+  $defects_array = pdo_query($defects_query);
+  add_last_sql_error("gather_overview_data", $group_id);
+
+  while($defect_row = pdo_fetch_array($defects_array))
     {
-    $defects_query = "SELECT da.checker AS checker,
-                      sum(dd.value) AS defects
-                      FROM build AS b
-                      LEFT JOIN build2group AS b2g ON (b2g.buildid=b.id)
-                      LEFT JOIN dynamicanalysis as da ON (da.buildid = b.id)
-                      LEFT JOIN dynamicanalysisdefect as dd ON (dd.dynamicanalysisid=da.id)
-                      WHERE b.projectid = '$projectid'
-                      AND b.starttime < '$end_date'
-                      AND b.starttime >= '$start_date'
-                      AND b2g.groupid = '$group_id'
-                      AND checker IS NOT NULL
-                      GROUP BY checker";
-
-    $defects_array = pdo_query($defects_query);
-    add_last_sql_error("gather_overview_data", $group_id);
-
-    while($defect_row = pdo_fetch_array($defects_array))
+    // make sure this row has both checker & defect info for us
+    if (!array_key_exists("checker", $defect_row) ||
+        !array_key_exists("defects", $defect_row) ||
+        !is_numeric($defect_row["defects"]))
       {
-      // make sure this row has both checker & defect info for us
-      if (!array_key_exists("checker", $defect_row) ||
-          !array_key_exists("defects", $defect_row) ||
-          !is_numeric($defect_row["defects"]))
-        {
-        continue;
-        }
-      if (!array_key_exists($defect_row["checker"], $dynamic_analysis))
-        {
-        $dynamic_analysis[$defect_row["checker"]] = $defect_row["defects"];
-        }
-      else
-        {
-        $dynamic_analysis[$defect_row["checker"]] += $defect_row["defects"];
-        }
+      continue;
       }
-      $return_values["dynamic_analysis"] = $dynamic_analysis;
+    if (!array_key_exists($defect_row["checker"], $dynamic_analysis))
+      {
+      $dynamic_analysis[$defect_row["checker"]] = $defect_row["defects"];
+      }
+    else
+      {
+      $dynamic_analysis[$defect_row["checker"]] += $defect_row["defects"];
+      }
+    }
+
+  // add dynamic analysis data to our return package if we found any
+  // relevant data.
+  if (!empty($dynamic_analysis))
+    {
+    $return_values["dynamic_analysis"] = $dynamic_analysis;
     }
 
   return $return_values;
@@ -577,8 +654,8 @@ function gather_static_data($start_date, $end_date, $group_id)
       }
     }
 
-  $return_values["build_warnings"] = $num_build_warnings;
-  $return_values["build_errors"] = $num_build_errors;
+  $return_values["errors"] = $num_build_errors;
+  $return_values["warnings"] = $num_build_warnings;
   return $return_values;
 }
 
