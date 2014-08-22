@@ -69,18 +69,19 @@ if (isset($_POST['saveLayout']))
     {
     // remove old overview layout from this project
     pdo_query(
-      "DELETE FROM overviewbuildgroups WHERE projectid=" .
+      "DELETE FROM overview_components WHERE projectid=" .
         qnum(pdo_real_escape_numeric($projectid)));
     add_last_sql_error("manageOverview::saveLayout::DELETE", $projectid);
 
     // construct query to insert the new layout
-    $query = "INSERT INTO overviewbuildgroups (projectid, buildgroupid, position) VALUES ";
+    $query = "INSERT INTO overview_components (projectid, buildgroupid, position, type) VALUES ";
     foreach ($inputRows as $inputRow)
       {
       $query .= "(" .
         qnum(pdo_real_escape_numeric($projectid)) . ", " .
         qnum(pdo_real_escape_numeric($inputRow["buildgroupid"])) . ", " .
-        qnum(pdo_real_escape_numeric($inputRow["position"])) . "), ";
+        qnum(pdo_real_escape_numeric($inputRow["position"])) . ", " .
+        qnum(pdo_real_escape_string($inputRow["type"])) . "), ";
       }
 
     // remove the trailing comma and space, then insert our new values
@@ -114,7 +115,7 @@ while($buildgroup_row = pdo_fetch_array($buildgroup_rows))
 
 // Get the groups that are already included in the overview
 $query =
-  "SELECT bg.id, bg.name FROM overviewbuildgroups AS obg
+  "SELECT bg.id, bg.name FROM overview_components AS obg
    LEFT JOIN buildgroup AS bg ON (obg.buildgroupid = bg.id)
    WHERE obg.projectid = " . qnum(pdo_real_escape_numeric($projectid)) . "
    ORDER BY obg.position";
