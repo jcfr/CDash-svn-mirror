@@ -274,7 +274,7 @@
               </div>
               <div class="row spacer"></div>
               <div class="row">
-                <button type="submit" id="saveLayout" class="btn btn-default col-md-1 col-md-offset-5">
+                <button type="submit" id="saveLayout" class="btn btn-default col-md-3 col-md-offset-4">
                   Save Layout
                 </button>
                 <div class="col-md-1">
