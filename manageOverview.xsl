@@ -65,7 +65,6 @@
         <script src="javascript/jquery-1.10.2.js"/>
         <script src="javascript/jquery-ui-1.10.4.min.js"/>
         <script src="javascript/cdashSortable.js"></script>
-        <script src="javascript/cdashOverview.js"></script>
         <script>
           $(function() {
             // setup sortable element
