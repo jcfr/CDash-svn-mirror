@@ -192,10 +192,10 @@
           <table class="table-bordered table-responsive table-condensed container-fluid" style="width:100%;">
             <caption class="h4">Static Analysis</caption>
             <xsl:for-each select='/cdash/staticanalysis'>
-              <xsl:variable name="group_name" select="group_name"/>
+              <xsl:variable name="group_name_clean" select="group_name_clean"/>
               <tr class="row">
                 <td class="col-md-1">
-                  <b><xsl:value-of select="group_name_clean"/></b>
+                  <b><xsl:value-of select="group_name"/></b>
                 </td>
                 <xsl:for-each select='measurement'>
                   <td class="col-md-1">
@@ -205,7 +205,7 @@
                     <xsl:value-of select="value"/>
                   </td>
                   <td class="col-md-1">
-                    <div id="{$group_name}_{name}_chart" class="overview-line-chart"></div>
+                    <div id="{$group_name_clean}_{name}_chart" class="overview-line-chart"></div>
                   </td>
                 </xsl:for-each>
               </tr>

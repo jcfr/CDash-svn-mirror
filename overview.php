@@ -345,12 +345,12 @@ foreach($build_measurements as $measurement)
   {
   $xml .= "<measurement>";
   $xml .= add_XML_value("name", $measurement);
-  $xml .= add_XML_value("nice_name", str_replace("_", " ", $measurement));
+  $xml .= add_XML_value("nice_name", sanitize_string($measurement));
   foreach($build_groups as $build_group)
     {
     $xml .= "<group>";
     $xml .= add_XML_value("group_name", $build_group["name"]);
-    $xml .= add_XML_value("group_name_clean", str_replace(" ", "_", $build_group["name"]));
+    $xml .= add_XML_value("group_name_clean", sanitize_string($build_group["name"]));
     $xml .= add_XML_value("value", $overview_data[$measurement][$build_group["name"]]);
     // JSON encode linechart data to make it easier to use on the client side
     $xml .= add_XML_value("chart", json_encode($linechart_data[$measurement][$build_group["name"]]));
@@ -373,7 +373,7 @@ foreach($build_groups as $build_group)
     $xml .= add_XML_value("name", preg_replace("/[ -]/", "_", $coverage_group_name));
     $xml .= add_XML_value("nice_name", "$coverage_group_name");
     $xml .= add_XML_value("group_name", $build_group["name"]);
-    $xml .= add_XML_value("group_name_clean", str_replace(" ", "_", $build_group["name"]));
+    $xml .= add_XML_value("group_name_clean", sanitize_string($build_group["name"]));
     $xml .= add_XML_value("low", $coverage_data[$build_group["name"]][$coverage_group_name]["low"]);
     $xml .= add_XML_value("medium",
       $coverage_data[$build_group["name"]][$coverage_group_name]["medium"]);
@@ -405,7 +405,7 @@ foreach($dynamic_analysis_types as $checker)
       }
     $xml .= "<group>";
     $xml .= add_XML_value("group_name", $build_group["name"]);
-    $xml .= add_XML_value("group_name_clean", str_replace(" ", "_", $build_group["name"]));
+    $xml .= add_XML_value("group_name_clean", sanitize_string($build_group["name"]));
     $xml .= add_XML_value("chart",
       json_encode($linechart_data[$build_group["name"]][$checker]));
     if (array_key_exists($checker, $dynamic_analysis_data))
@@ -442,12 +442,12 @@ foreach($static_groups as $static_group)
 
   $xml .= "<staticanalysis>";
   $xml .= add_XML_value("group_name", $static_group["name"]);
-  $xml .= add_XML_value("group_name_clean", str_replace(" ", "_", $static_group["name"]));
+  $xml .= add_XML_value("group_name_clean", sanitize_string($static_group["name"]));
   foreach($static_measurements as $measurement)
     {
     $xml .= "<measurement>";
     $xml .= add_XML_value("name", $measurement);
-    $xml .= add_XML_value("nice_name", str_replace("_", " ", $measurement));
+    $xml .= add_XML_value("nice_name", sanitize_string($measurement));
     $xml .= add_XML_value("value",
       $overview_data[$measurement][$static_group["name"]]);
     $xml .= add_XML_value("chart",
@@ -657,6 +657,15 @@ function gather_static_data($start_date, $end_date, $group_id)
   $return_values["errors"] = $num_build_errors;
   $return_values["warnings"] = $num_build_warnings;
   return $return_values;
+}
+
+function sanitize_string($input_string)
+{
+  // replace spaces with underscores
+  $retval = str_replace(" ", "_", $input_string);
+  // replace - with _
+  $retval = str_replace("-", "_", $retval);
+  return $retval;
 }
 
 ?>
