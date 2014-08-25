@@ -146,7 +146,7 @@
           <table class="table-bordered table-responsive table-condensed container-fluid">
             <caption class="h4">Coverage</caption>
             <xsl:for-each select='/cdash/coverage'>
-              <tr class="row" style="height:50px;">
+              <tr class="row" style="height:100px;">
                 <td class="col-md-1"><b><xsl:value-of select="group_name"/><xsl:text> </xsl:text><xsl:value-of select="nice_name"/></b></td>
                 <td class="col-md-1">
                   <xsl:value-of select="current"/>%
@@ -154,7 +154,7 @@
                 <td class="col-md-1">
                   <div id="{group_name_clean}_{name}_chart" class="overview-line-chart"></div>
                 </td>
-                <td id="{group_name_clean}_{name}_bullet" class="col-md-4" colspan="4" style="height:50px;">
+                <td id="{group_name_clean}_{name}_bullet" class="col-md-4" colspan="4" style="height:100px;">
                   <svg></svg>
                 </td>
               </tr>
